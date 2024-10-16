@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>MazterPath</title>
+	<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/MaterPath-logo.png') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+	<header>
+	  <div class="user">
+	    <span id="iconUser">
+	      
+	    </span>
+	    <div id="login_container"></div>
+	  </div>
+	  <div class="centrarT">
+	    <a href="/">
+	      <div class="empresa__container">
+	        <span>
+	          
+	        </span>
+	        <div class="nombre__empresa">InfoPedia</div>
+	      </div>
+	    </a>
+	  </div>
+	  <div class="boton_menu">
+	    <div class="bars__menu" id="icon-menu">
+	      <span class="line1__bars-menu"></span>
+	      <span class="line2__bars-menu"></span>
+	      <span class="line3__bars-menu"></span>
+	    </div>
+	    <nav class="nav__links">
+	      <a href="index_inicio.html" class="nav__link">Inicio</a>
+	      <a href="index.html" class="nav__link">Artículos</a>
+	      <a href="index_Contac.html" class="nav__link">Contactos</a>
+	    </nav>
+	  </div>
+	</header>
+	<div class="main">
+		
+		{% block content %}
+
+		{% endblock%}
+
+	</div>
+	<br>
+	<footer>
+	  <div class="footer-content">
+    	<div class="footer-section about">
+      	  <h2>Sobre Nosotros</h2>
+     	  <p>Información sobre tu empresa o sitio web.</p>
+      		<ul class="socials">
+		        <li>
+		          <a href="#"><i class="fab fa-facebook"></i></a>
+		        </li>
+		        <li>
+		          <a href="#"><i class="fab fa-twitter"></i></a>
+		        </li>
+		        <li>
+		          <a href="#"><i class="fab fa-instagram"></i></a>
+		    	</li>
+		    </ul>
+    	</div>
+	    <div class="footer-section links">
+	      <h2>Enlaces Útiles</h2>
+	      <ul>
+	        <li><a href="#">Inicio</a></li>
+	        <li><a href="#">Nosotros</a></li>
+	        <li><a href="#">Servicios</a></li>
+	        <li><a href="#">Contacto</a></li>
+	      </ul>
+	    </div>
+	    <div class="footer-section contact">
+	      <h2>Contacto</h2>
+	      <p>
+	        <a href="mailto:controldigitalco@gmail.com"
+	          >controldigitalco@gmail.com</a
+	        >
+	      </p>
+	    </div>
+	</div>
+	<div class="footer-bottom">
+		&copy; 2024 InfoPedia. Todos los derechos reservados.
+	</div>
+</footer>
+</body>
+</html>
