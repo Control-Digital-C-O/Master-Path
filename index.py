@@ -1,4 +1,4 @@
-	# Frameworks para el uso de Apps webs python
+# Frameworks para el uso de Apps webs python
 from flask import Flask, render_template 
 
 app = Flask(__name__) # Varible de ruta
@@ -16,4 +16,5 @@ def about():
 # Validacion de la ruta, para rotornar home por defecto
 # Si no, escucha nuevas peticiones
 if __name__ == '__main__':
-	app.run(debug=True) # Habilitamos el entorno de prueba
+	# Habilitamos el entorno de prueba
+	app.run(host='0.0.0.0', port=5000, debug=True)
