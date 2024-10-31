@@ -585,11 +585,13 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"b8qc1":[function(require,module,exports) {
 var _barsMenuJs = require("./barsMenu.js");
+var _headerJs = require("./header.js");
 document.querySelector(".part1").onclick = function() {
     (0, _barsMenuJs.setupNavbarMenuAnimation)();
 };
+(0, _headerJs.toggleHeaderOnScroll)();
 
-},{"./barsMenu.js":"5VA2C"}],"5VA2C":[function(require,module,exports) {
+},{"./barsMenu.js":"5VA2C","./header.js":"fxKs0"}],"5VA2C":[function(require,module,exports) {
 // Animación del menu hamburguesa
 // Función para animar el menú de la barra de navegación
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -664,6 +666,23 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}]},["4QE7D","b8qc1"], "b8qc1", "parcelRequireaf0f")
+},{}],"fxKs0":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "toggleHeaderOnScroll", ()=>toggleHeaderOnScroll);
+function toggleHeaderOnScroll() {
+    let lastScrollTop = 0;
+    const header = document.querySelector("header");
+    window.addEventListener("scroll", function() {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop) // Desplazamiento hacia abajo
+        header.style.transform = "translateY(-100%)"; // Oculta el header
+        else // Desplazamiento hacia arriba
+        header.style.transform = "translateY(0)"; // Muestra el header
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // Previene valores negativos
+    });
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["4QE7D","b8qc1"], "b8qc1", "parcelRequireaf0f")
 
 //# sourceMappingURL=main.js.map

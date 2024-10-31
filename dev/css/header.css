@@ -5,6 +5,11 @@ header {
   display: flex;
   justify-content: space-between;
   font-size: var(--tamano_nombre_empresa);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  transition: transform 0.3s ease; /* Suaviza el movimiento */
 }
 
 /* Part1 = Menu hamburguesa de opciones */

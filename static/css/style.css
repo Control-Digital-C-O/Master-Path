@@ -2,8 +2,13 @@ header {
   background: var(--color_primary);
   box-shadow: var(--shadow_elevation_medium);
   font-size: var(--tamano_nombre_empresa);
+  z-index: 1000;
   justify-content: space-between;
+  width: 100%;
+  transition: transform .3s;
   display: flex;
+  position: fixed;
+  top: 0;
 }
 
 .bars__menu {
