@@ -3,15 +3,15 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>MazterPath</title>
-	<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/MaterPath-logo.png') }}">
+	<title>Mi pagina</title>
+	<link rel="icon" type="image/x-icon" id="favicon">
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 	<header>
-		<!-- Part1 = Menu hamburguesa de opciones -->
-		<div class="part1">
-			<div class="bars__menu" id="icon-menu">
+		<!-- Part1 = Menu hamburguesa de opciones --> 
+		<div class="part1" id="icon-menu">
+			<div class="bars__menu">
 		    	<span class="line1__bars-menu"></span>
 		    	<span class="line2__bars-menu"></span>
 				<span class="line3__bars-menu"></span>
@@ -22,22 +22,20 @@
 			    <a href="index_Contac.html" class="nav__link">Contactos</a>
 		    </nav>
 		</div>
+
 		<!-- Part2 = Logo + Nombre de la empresa -->
 		<div class="part2">
-			<a href="{{ url_for('home') }}" class="empresa_container">
-				<div class="logo-header">
-					<img src="{{ url_for('static', filename='img/MaterPath-logo.png') }}" alt="LogoWeb" class="logo-header-img">
-				</div>
-				<span>
-					MasterPath
-				</span>
+			<a href="{{ url_for('home') }}" id="logo" style="height: 100%;">
 			</a>
 		</div>
+
 		<!-- Part3 = Usuario -->
 		<div class="part3">
+			<!-- 
 			<span id="iconUser">
 		    </span>
 		    <div id="login_container"></div>
+			 -->
 		</div>
 	</header>
 	<!-- Main o contenido principal -->
@@ -68,8 +66,8 @@
 		    <div class="footer-section links">
 				<h2>Enlaces Útiles</h2>
 				<ul>
-					<li><a href="#">Inicio</a></li>
-					<li><a href="#">Nosotros</a></li>
+					<li><a href="{{ url_for('home') }}">Inicio</a></li>
+					<li><a href="{{ url_for('about') }}">Nosotros</a></li>
 					<li><a href="#">Servicios</a></li>
 					<li><a href="#">Contacto</a></li>
 				</ul>
@@ -84,7 +82,7 @@
 		    </div>
 		</div>
 		<div class="footer-bottom">
-			&copy; 2024 InfoPedia. Todos los derechos reservados.
+			&copy; 2024 MasterPath. Todos los derechos reservados.
 		</div>
 	</footer>
 	<script src="{{ url_for('static', filename='js/main.js') }}"></script>

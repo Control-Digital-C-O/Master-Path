@@ -4,16 +4,15 @@ header {
 	box-shadow: var(--shadow_elevation_medium);
   display: flex;
   justify-content: space-between;
-  font-size: var(--tamano_nombre_empresa);
-  position: fixed;
-  top: 0;
+  height: 55px;
   width: 100%;
-  z-index: 1000;
-  transition: transform 0.3s ease; /* Suaviza el movimiento */
+  margin-bottom: 10px;
+  align-items: center;
 }
 
 /* Part1 = Menu hamburguesa de opciones */
 /* Botón Hamburguesa */
+
 .bars__menu {
   width: 30px;
   height: 30px;
@@ -33,6 +32,7 @@ header {
 
 .activeline1__bars-menu {
   transform: rotate(45deg) translate(-2px, 1px);
+  margin-left: 6px;
 }
 
 .activeline2__bars-menu {
@@ -42,6 +42,7 @@ header {
 
 .activeline3__bars-menu {
   transform: rotate(-45deg) translate(-4px, 2px);
+  margin-left: 6px;
 }
 
 .no-scroll {
@@ -55,7 +56,7 @@ header {
   position: fixed;
   left: 0;
   bottom: 0;
-  top: 64px;
+  top: 54px;
   right: 0;
   display: grid;
   place-items: center;
@@ -83,11 +84,29 @@ header {
 }
 
 /* Part2 = Logo + Nombre de la empresa */
-.part2 .empresa_container {
+.part1, .part2, .part3 {
+  min-width: 6vw;  
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+}
+
+.part2 a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.empresa_container {
   color: var(--color_title);
-  text-decoration: none;
   font-size: var(--tamano_nombre_empresa);
   display: flex;
+  align-items: center;
+  justify-content: center; 
+  height: 100%;
+  width: 100%;
+  padding-left: 4px;
 }
 
 .logo-header { 
@@ -98,7 +117,7 @@ header {
 }
 
 .logo-header-img {
-  height: calc(var(--tamano_nombre_empresa) - 15px);
+  height: calc(var(--tamano_nombre_empresa) - 5px);
 }
 
 /* Part3 = Usuario */

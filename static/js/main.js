@@ -585,13 +585,30 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"b8qc1":[function(require,module,exports) {
 var _barsMenuJs = require("./barsMenu.js");
-var _headerJs = require("./header.js");
-document.querySelector(".part1").onclick = function() {
-    (0, _barsMenuJs.setupNavbarMenuAnimation)();
-};
-(0, _headerJs.toggleHeaderOnScroll)();
+/*
+import { toggleHeaderOnScroll } from './header.js';
+import { manageHeaderSpacer } from './header.js';
+*/ var _titleJs = require("./title.js");
+var _cardsJs = require("./cards.js");
+/*
+toggleHeaderOnScroll();
+manageHeaderSpacer();
+*/ function metaDatos() {
+    const home = document.querySelector(".home");
+    fetch("https://masterpath-22-default-rtdb.firebaseio.com/.json").then((response)=>response.json()).then((data)=>{
+        (0, _titleJs.nombrePagina)(data.pagina);
+        if (home) (0, _cardsJs.mostrarCards)(data.cursos);
+    }).catch((error)=>errorDatos(error));
+}
+function errorDatos(error) {
+    console.error("Error al cargar los datos:", error);
+    alert("Error al cargar los datos: ", error);
+}
+metaDatos();
+(0, _barsMenuJs.setupNavbarMenuAnimation)();
+setInterval(metaDatos, 5000);
 
-},{"./barsMenu.js":"5VA2C","./header.js":"fxKs0"}],"5VA2C":[function(require,module,exports) {
+},{"./barsMenu.js":"5VA2C","./title.js":"iLQF0","./cards.js":"7rR4w"}],"5VA2C":[function(require,module,exports) {
 // Animación del menu hamburguesa
 // Función para animar el menú de la barra de navegación
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -630,7 +647,6 @@ function setupNavbarMenuAnimation() {
         }
         // Escuchar el evento click en el icono del menú y en el botón hamburguesa
         iconMenu.addEventListener("click", animateBars);
-        barsMenu.addEventListener("click", animateBars);
         // Escuchar eventos de clic en el documento para cerrar el menú si se hace clic fuera
         document.addEventListener("click", closeMenuOnClickOutside);
     } else console.error("Elemento con ID 'icon-menu' o clase 'bars__menu' no encontrado.");
@@ -666,21 +682,113 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"fxKs0":[function(require,module,exports) {
+},{}],"iLQF0":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "toggleHeaderOnScroll", ()=>toggleHeaderOnScroll);
-function toggleHeaderOnScroll() {
-    let lastScrollTop = 0;
-    const header = document.querySelector("header");
-    window.addEventListener("scroll", function() {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (scrollTop > lastScrollTop) // Desplazamiento hacia abajo
-        header.style.transform = "translateY(-100%)"; // Oculta el header
-        else // Desplazamiento hacia arriba
-        header.style.transform = "translateY(0)"; // Muestra el header
-        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // Previene valores negativos
-    });
+parcelHelpers.export(exports, "nombrePagina", ()=>nombrePagina);
+function nombrePagina(data) {
+    //Elementos
+    const titulo = document.getElementById("logo");
+    const favicon = document.getElementById("favicon");
+    // Limpieza del Elemento
+    titulo.innerHTML = "";
+    document.title = "";
+    // Crear elementos internos
+    const contenido = document.createElement("div");
+    const img = document.createElement("img");
+    // Agregar atributos
+    contenido.textContent = data.nombre;
+    img.src = data.logo;
+    img.alt = "logo de MasterPath";
+    document.title = data.nombre;
+    favicon.href = data.logo;
+    // Agregar clases y estilos
+    img.classList.add("logo-header-img");
+    contenido.classList.add("empresa_container");
+    // Agregar elementos al contenedor principal
+    titulo.appendChild(img);
+    titulo.appendChild(contenido);
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"7rR4w":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "mostrarCards", ()=>mostrarCards);
+function mostrarCards(data) {
+    //Elementos
+    const listCards = document.querySelector(".cards_list");
+    const limiteCaracteres = 220;
+    //Limpieza
+    listCards.innerHTML = "";
+    for(let id in data){
+        if (id === "default") continue;
+        //Elementos internos
+        let tarjetaCurso = document.createElement("div");
+        let img = document.createElement("img");
+        let tarjetaContenido = document.createElement("div");
+        let tituloCurso = document.createElement("div");
+        let descripcionCurso = document.createElement("div");
+        let bottom = document.createElement("div");
+        let botonCurso = document.createElement("button");
+        let precio = document.createElement("div");
+        let precioAnterior = document.createElement("div");
+        let cuadroPrecio = document.createElement("div");
+        let band = false;
+        //Clases
+        tarjetaCurso.classList.add("card");
+        img.classList.add("card__image");
+        tarjetaContenido.classList.add("card__content");
+        tituloCurso.classList.add("card__title");
+        descripcionCurso.classList.add("card__description");
+        botonCurso.classList.add("card__button");
+        precio.classList.add("card__price");
+        bottom.classList.add("card__bottom");
+        precioAnterior.classList.add("card__priceBefore");
+        cuadroPrecio.classList.add("card__cuadroPrecio");
+        //Propiedades
+        if (data[id].imagen) img.src = data[id].imagen;
+        else img.src = data["default"].imagen;
+        tituloCurso.innerHTML = data[id].titulo;
+        if (data[id].descripcion.length > limiteCaracteres) {
+            data[id].descripcion = data[id].descripcion.slice(0, limiteCaracteres) + "...";
+            descripcionCurso.innerHTML = data[id].descripcion;
+        }
+        botonCurso.innerHTML = "Leer m\xe1s";
+        //botonCurso.aria-label = 'Leer más sobre este curso';
+        switch(data[id].precioActual){
+            case "":
+                precio.innerHTML = data["default"].precioNada;
+                break;
+            case "default":
+                precio.innerHTML = data["default"].precioGratis;
+                break;
+            default:
+                let num = parseInt(data[id].precioActual);
+                let num2 = parseInt(data[id].precioAnterior);
+                precio.innerHTML = "$" + num.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                if (num < num2) {
+                    precioAnterior.innerHTML = "$" + num2.toLocaleString("es-Ar", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    band = true;
+                }
+        }
+        //Principal
+        listCards.appendChild(tarjetaCurso);
+        tarjetaCurso.appendChild(img);
+        tarjetaCurso.appendChild(tarjetaContenido);
+        tarjetaContenido.appendChild(tituloCurso);
+        tarjetaContenido.appendChild(descripcionCurso);
+        tarjetaContenido.appendChild(bottom);
+        bottom.appendChild(botonCurso);
+        bottom.appendChild(cuadroPrecio);
+        if (band) cuadroPrecio.appendChild(precioAnterior);
+        cuadroPrecio.appendChild(precio);
+    }
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["4QE7D","b8qc1"], "b8qc1", "parcelRequireaf0f")

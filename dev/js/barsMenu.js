@@ -48,7 +48,6 @@ export function setupNavbarMenuAnimation() {
 
     // Escuchar el evento click en el icono del menú y en el botón hamburguesa
     iconMenu.addEventListener("click", animateBars);
-    barsMenu.addEventListener("click", animateBars);
 
     // Escuchar eventos de clic en el documento para cerrar el menú si se hace clic fuera
     document.addEventListener("click", closeMenuOnClickOutside);

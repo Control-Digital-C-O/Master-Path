@@ -2,9 +2,10 @@
 @import './header.css';
 
 /* Estilos del Footer */
-@import 'footer.css';
+@import './footer.css';
 
-
+/* Estilos de las Cards */
+@import './main.css';
 
 /* Aqui se define los colores o valores principales. */
 :root {
@@ -32,7 +33,7 @@
   /**
    * [tamano_nombre_empresa Es para el tamaño del nombre del logo]
    */
-  --tamano_nombre_empresa: 50px;
+  --tamano_nombre_empresa: 35px;
 
   /**
    * [tamano_links_header Es el tamaño de los links en el header]
@@ -65,4 +66,8 @@ body {
   display: grid;
   min-height: 100dvh;
   grid-template-rows: auto 1fr auto;
+}
+
+a {
+  text-decoration: none;
 }
