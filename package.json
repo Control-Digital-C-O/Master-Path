@@ -5,7 +5,7 @@
   "source": "dev/js/main.js",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "devDependencies": {
-    "concurrently": "^9.0.1",
+    "concurrently": "latest",
     "parcel": "latest"
   },
   "scripts": {
@@ -110,5 +110,6 @@
     "update-browserslist-db": "^1.1.1",
     "utility-types": "^3.11.0",
     "weak-lru-cache": "^1.2.2"
-  }
+  },
+  "main": "index.js"
 }
