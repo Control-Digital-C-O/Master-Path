@@ -1,8 +1,4 @@
 node_modules/
-node_modules
 .parcel-cache/
-.parcel-cache
 static/css/style.css.map
-static\css\style.css.map
 static/js/main.js.map
-static\js\main.js.map
