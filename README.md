@@ -33,13 +33,14 @@ Página de ejemplo para la práctica de aplicaciones web con Python y Flask.
 
 - **Gestor de dependencias virtuales**: Se recomienda usar `venv` o `virtualenv` para crear un entorno virtual aislado.
   - **Creación**: `python3 -m venv venv`
-  - **Activación**: 
+  - **Activación**:
     - En Unix/macOS: `source venv/bin/activate`
     - En Windows: `venv\Scripts\activate`
 
 Estas recomendaciones y requisitos asegurarán que cualquier colaborador o desarrollador pueda replicar el entorno y contribuir al proyecto sin problemas.
 
 ## Requisitos para el proyecto
+
 1. pyhton3
 2. pip
-3. 
+3. muchas lineas de comando
