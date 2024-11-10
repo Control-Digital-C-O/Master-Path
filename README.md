@@ -38,3 +38,8 @@ Página de ejemplo para la práctica de aplicaciones web con Python y Flask.
     - En Windows: `venv\Scripts\activate`
 
 Estas recomendaciones y requisitos asegurarán que cualquier colaborador o desarrollador pueda replicar el entorno y contribuir al proyecto sin problemas.
+
+## Requisitos para el proyecto
+1. pyhton3
+2. pip
+3. 
