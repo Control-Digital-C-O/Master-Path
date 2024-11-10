@@ -2,3 +2,4 @@ node_modules/
 .parcel-cache/
 static/css/style.css.map
 static/js/main.js.map
+package-lock.json
