@@ -10,7 +10,12 @@
     "build:css": "parcel build dev/css/style.css --dist-dir static/css",
     "build": "npm run build:js && npm run build:css"
   },
-  "keywords": ["web", "flask", "parcel", "python"],
+  "keywords": [
+    "web",
+    "flask",
+    "parcel",
+    "python"
+  ],
   "author": "Control Digital C.O.",
   "license": "ISC",
   "devDependencies": {
