@@ -1,6 +1,6 @@
 /* Estilos del Header */
 header {
-	background: var(--color_primary);
+	background: var(--color_primary); 
 	box-shadow: var(--shadow_elevation_medium);
   display: flex;
   justify-content: space-between;

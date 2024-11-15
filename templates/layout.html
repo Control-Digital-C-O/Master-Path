@@ -1,90 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Mi pagina</title>
-	<link rel="icon" type="image/x-icon" id="favicon">
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-	<header>
-		<!-- Part1 = Menu hamburguesa de opciones --> 
-		<div class="part1" id="icon-menu">
-			<div class="bars__menu">
-		    	<span class="line1__bars-menu"></span>
-		    	<span class="line2__bars-menu"></span>
-				<span class="line3__bars-menu"></span>
-		    </div>
-		    <nav class="nav__links">
-		    	<a href="index_inicio.html" class="nav__link">Inicio</a>
-		    	<a href="index.html" class="nav__link">Artículos</a>
-			    <a href="index_Contac.html" class="nav__link">Contactos</a>
-		    </nav>
-		</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi pagina</title>
+    <link rel="icon" type="image/x-icon" id="favicon" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <header>
+      <!-- Part1 = Menu hamburguesa de opciones -->
+      <div class="part1" id="icon-menu">
+        <div class="bars__menu">
+          <span class="line1__bars-menu"></span>
+          <span class="line2__bars-menu"></span>
+          <span class="line3__bars-menu"></span>
+        </div>
+        <nav class="nav__links">
+          <a href="index_inicio.html" class="nav__link">Inicio</a>
+          <a href="index.html" class="nav__link">Artículos</a>
+          <a href="index_Contac.html" class="nav__link">Contactos</a>
+        </nav>
+      </div>
 
-		<!-- Part2 = Logo + Nombre de la empresa -->
-		<div class="part2">
-			<a href="{{ url_for('home') }}" id="logo" style="height: 100%;">
-			</a>
-		</div>
+      <!-- Part2 = Logo + Nombre de la empresa -->
+      <div class="part2">
+        <a href="{{ url_for('home') }}" id="logo" style="height: 100%"> </a>
+      </div>
 
-		<!-- Part3 = Usuario -->
-		<div class="part3">
-			<!-- 
+      <!-- Part3 = Usuario -->
+      <div class="part3">
+        <!-- 
 			<span id="iconUser">
 		    </span>
 		    <div id="login_container"></div>
 			 -->
-		</div>
-	</header>
-	<!-- Main o contenido principal -->
-	<div class="main">
-		
-		{% block content %}
+      </div>
+    </header>
 
-		{% endblock%}
+    <!-- Main o contenido principal -->
+    <div class="main">{% block content %} {% endblock%}</div>
 
-	</div>
-	<footer>
-		<div class="footer-content">
-    		<div class="footer-section about">
-				<h2>Sobre Nosotros</h2>
-				<p>Información sobre tu empresa o sitio web.</p>
-				<ul class="socials">
-					<li>
-						<a href="#"><i class="fab fa-facebook"></i></a>
-					</li>
-					<li>
-						<a href="#"><i class="fab fa-twitter"></i></a>
-					</li>
-					<li>
-						<a href="#"><i class="fab fa-instagram"></i></a>
-					</li>
-				</ul>
-    		</div>
-		    <div class="footer-section links">
-				<h2>Enlaces Útiles</h2>
-				<ul>
-					<li><a href="{{ url_for('home') }}">Inicio</a></li>
-					<li><a href="{{ url_for('about') }}">Nosotros</a></li>
-					<li><a href="#">Servicios</a></li>
-					<li><a href="#">Contacto</a></li>
-				</ul>
-		    </div>
-		    <div class="footer-section contact">
-				<h2>Contacto</h2>
-				<p>
-					<a href="mailto:controldigitalco@gmail.com"
-					  >controldigitalco@gmail.com</a
-					>
-				</p>
-		    </div>
-		</div>
-		<div class="footer-bottom">
-			&copy; 2024 MasterPath. Todos los derechos reservados.
-		</div>
-	</footer>
-	<script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
+    <footer>
+      <div class="footer-content">
+        <div class="footer-section about">
+          <h2>Sobre Nosotros</h2>
+          <p>Información sobre tu empresa o sitio web.</p>
+          <ul class="socials">
+            <li>
+              <a href="#"><i class="fab fa-facebook"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </li>
+          </ul>
+        </div>
+        <div class="footer-section links">
+          <h2>Enlaces Útiles</h2>
+          <ul>
+            <li><a href="{{ url_for('home') }}">Inicio</a></li>
+            <li><a href="{{ url_for('about') }}">Nosotros</a></li>
+            <li><a href="#">Servicios</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="footer-section contact">
+          <h2>Contacto</h2>
+          <p>
+            <a href="mailto:controldigitalco@gmail.com"
+              >controldigitalco@gmail.com</a
+            >
+          </p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2024 MasterPath. Todos los derechos reservados.
+      </div>
+    </footer>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
 </html>

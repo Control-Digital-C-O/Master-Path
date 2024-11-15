@@ -217,12 +217,12 @@ footer {
 
 .card {
   text-align: center;
+  width: 380px;
+  height: 462px;
   box-shadow: var(--shadow_elevation_medium);
   border: 1px solid #ccc;
   border-radius: 16px;
   flex-direction: column;
-  width: 380px;
-  height: 462px;
   margin: 20px;
   transition: transform .3s ease-in-out;
   display: flex;

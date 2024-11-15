@@ -1,747 +1,765 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Mi pagina</title>
-	<link rel="icon" type="image/x-icon" id="favicon">
-	<style>
-/* Estilos del header */
-@import './header.css';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi pagina</title>
+    <link rel="icon" type="image/x-icon" id="favicon" />
+    <style>
+      /* Estilos del header */
+      @import "./header.css";
 
-/* Estilos del Footer */
-@import './footer.css';
+      /* Estilos del Footer */
+      @import "./footer.css";
 
-/* Estilos de las Cards */
-@import './main.css';
+      /* Estilos de las Cards */
+      @import "./main.css";
 
-/* Aqui se define los colores o valores principales. */
-:root {
-  /**
+      /* Aqui se define los colores o valores principales. */
+      :root {
+        /**
    * [color_primary es color principal de la pagina como para 
    * los fondos o zonas de relevancia ]
    */
-  --color_primary: #0A4F2E;
+        --color_primary: #0a4f2e;
 
-  /**
+        /**
    * [color_title Es para los titulos o texto de alta relevancia]
    */
-  --color_title: #90B1F9;
+        --color_title: #90b1f9;
 
-  /**
+        /**
    * [color_text Es para el texto en general]
    */
-  --color_text: #FFFFFF;
+        --color_text: #ffffff;
 
-  /**
+        /**
    * [color_text_accent Es para el enfasis del texto]
    */
-  --color_text_accent: #46EE87;
+        --color_text_accent: #46ee87;
 
-  /**
+        /**
    * [tamano_nombre_empresa Es para el tamaño del nombre del logo]
    */
-  --tamano_nombre_empresa: 35px;
+        --tamano_nombre_empresa: 35px;
 
-  /**
+        /**
    * [tamano_links_header Es el tamaño de los links en el header]
    */
-  --tamano_links_header: 25px;
+        --tamano_links_header: 25px;
 
-  /**
+        /**
    * [Estos colores son para las sombras de los objetos en pantalla]
    * Solo utilizar el de --shadow_elevation_medium
    */
-  --shadow-color: 210deg 36% 47%;
-  --shadow_elevation_medium: 0.3px 0.5px 0.9px hsl(var(--shadow-color) / 0),
-    1.5px 2.9px 4.9px hsl(var(--shadow-color) / 0.27),
-    3px 6.1px 10.2px hsl(var(--shadow-color) / 0.55),
-    6.3px 12.5px 21px hsl(var(--shadow-color) / 0.82);
-}
+        --shadow-color: 210deg 36% 47%;
+        --shadow_elevation_medium: 0.3px 0.5px 0.9px
+            hsl(var(--shadow-color) / 0),
+          1.5px 2.9px 4.9px hsl(var(--shadow-color) / 0.27),
+          3px 6.1px 10.2px hsl(var(--shadow-color) / 0.55),
+          6.3px 12.5px 21px hsl(var(--shadow-color) / 0.82);
+      }
 
-/**
+      /**
  * Aplica estilos a toda la pagina
  */
-* {
-  margin:0;
-  padding:0;
-  box-sizing: border-box;
-}
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
+      /* Estilos del Main */
+      body {
+        display: grid;
+        min-height: 100dvh;
+        grid-template-rows: auto 1fr auto;
+      }
 
-/* Estilos del Main */
-body {
-  display: grid;
-  min-height: 100dvh;
-  grid-template-rows: auto 1fr auto;
-}
+      a {
+        text-decoration: none;
+      }
 
-a {
-  text-decoration: none;
-}
+      /* Estilos del Header */
+      header {
+        background: var(--color_primary);
+        box-shadow: var(--shadow_elevation_medium);
+        display: flex;
+        justify-content: space-between;
+        height: 55px;
+        width: 100%;
+        margin-bottom: 10px;
+        align-items: center;
+      }
 
-/* Estilos del Header */
-header {
-	background: var(--color_primary);
-	box-shadow: var(--shadow_elevation_medium);
-  display: flex;
-  justify-content: space-between;
-  height: 55px;
-  width: 100%;
-  margin-bottom: 10px;
-  align-items: center;
-}
+      /* Part1 = Menu hamburguesa de opciones */
+      /* Botón Hamburguesa */
 
-/* Part1 = Menu hamburguesa de opciones */
-/* Botón Hamburguesa */
+      .bars__menu {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        order: 1;
+      }
 
-.bars__menu {
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  order: 1;
-}
+      .bars__menu span {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background: white;
+        margin-top: 6px;
+        transform-origin: 0px 100%;
+        transition: all 300ms;
+      }
 
-.bars__menu span {
-  display: block;
-  width: 100%;
-  height: 2px;
-  background: white;
-  margin-top: 6px;
-  transform-origin: 0px 100%;
-  transition: all 300ms;
-}
+      .activeline1__bars-menu {
+        transform: rotate(45deg) translate(-2px, 1px);
+        margin-left: 6px;
+      }
 
-.activeline1__bars-menu {
-  transform: rotate(45deg) translate(-2px, 1px);
-  margin-left: 6px;
-}
+      .activeline2__bars-menu {
+        opacity: 0;
+        margin-left: -30px;
+      }
 
-.activeline2__bars-menu {
-  opacity: 0;
-  margin-left: -30px;
-}
+      .activeline3__bars-menu {
+        transform: rotate(-45deg) translate(-4px, 2px);
+        margin-left: 6px;
+      }
 
-.activeline3__bars-menu {
-  transform: rotate(-45deg) translate(-4px, 2px);
-  margin-left: 6px;
-}
+      .no-scroll {
+        overflow: hidden;
+      }
 
-.no-scroll {
-  overflow: hidden;
-}
+      /* Links del boton hamburguesa */
 
-/* Links del boton hamburguesa */
+      .nav__links {
+        width: 100%;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        top: 54px;
+        right: 0;
+        display: grid;
+        place-items: center;
+        clip-path: circle(0% at top left);
+        transition: clip-path 0.4s;
+        background-color: var(--color_primary);
+      }
 
-.nav__links {
-  width: 100%;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  top: 54px;
-  right: 0;
-  display: grid;
-  place-items: center;
-  clip-path: circle(0% at top left);
-  transition: clip-path 0.4s;
-  background-color: var(--color_primary);
-}
+      .nav__link {
+        text-decoration: none;
+        color: var(--color_secondary);
+        font-size: var(--tamano_links_header);
+      }
 
-.nav__link {
-  text-decoration: none;
-  color: var(--color_secondary);
-  font-size: var(--tamano_links_header);
-}
+      .nav__links--open {
+        clip-path: circle(150% at top left);
+      }
 
-.nav__links--open {
-  clip-path: circle(150% at top left);
-}
+      .nav__link:hover {
+        color: var(--color_tertiary);
+      }
 
-.nav__link:hover {
-  color: var(--color_tertiary);
-}
+      .boton_menu {
+        width: 30px;
+      }
 
-.boton_menu {
-  width: 30px;
-}
+      /* Part2 = Logo + Nombre de la empresa */
+      .part1,
+      .part2,
+      .part3 {
+        min-width: 6vw;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-/* Part2 = Logo + Nombre de la empresa */
-.part1, .part2, .part3 {
-  min-width: 6vw;  
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center; 
-}
+      .part2 a {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-.part2 a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+      .empresa_container {
+        color: var(--color_title);
+        font-size: var(--tamano_nombre_empresa);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        padding-left: 4px;
+      }
 
-.empresa_container {
-  color: var(--color_title);
-  font-size: var(--tamano_nombre_empresa);
-  display: flex;
-  align-items: center;
-  justify-content: center; 
-  height: 100%;
-  width: 100%;
-  padding-left: 4px;
-}
+      .logo-header {
+        margin-right: 5px;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+      }
 
-.logo-header { 
-  margin-right: 5px; 
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-}
+      .logo-header-img {
+        height: calc(var(--tamano_nombre_empresa) - 5px);
+      }
 
-.logo-header-img {
-  height: calc(var(--tamano_nombre_empresa) - 5px);
-}
+      /* Part3 = Usuario */
+      /* Falta el login */
 
-/* Part3 = Usuario */
-/* Falta el login */
+      .cards_list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+      }
 
-.cards_list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-}
+      .card {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        border-radius: 16px;
+        height: 462px;
+        margin: 20px;
+        flex-direction: column;
+        border: 1px solid #ccc;
+        transition: transform 0.3s ease-in-out;
+        width: 380px;
+        box-shadow: var(--shadow_elevation_medium);
+      }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  border-radius: 16px;
-  height: 462px;
-  margin: 20px;
-  flex-direction: column;
-  border: 1px solid #ccc;
-  transition: transform 0.3s ease-in-out;
-  width: 380px;
-  box-shadow: var(--shadow_elevation_medium);
-}
+      .card:hover {
+        transform: scale(1.1);
+      }
 
-.card:hover {
-  transform: scale(1.1);
-}
+      .card__image {
+        border-radius: 16px 16px 0 0;
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
 
-.card__image {
-  border-radius: 16px 16px 0 0;
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
+      .card__content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        justify-content: space-between;
+      }
 
-.card__content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: space-between;
-}
+      .card__description {
+        margin: 5px 0;
+      }
 
-.card__description {
-  margin: 5px 0;
-}
+      .card__bottom {
+        align-self: flex-end;
+        display: flex;
+        flex-direction: row-reverse;
+        width: 100%;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
 
-.card__bottom {
-  align-self: flex-end;
-  display: flex;
-  flex-direction: row-reverse;
-  width: 100%;
-  justify-content: space-between;
-  align-items: flex-end;
-}
+      .card__button {
+        padding: 8px 16px;
+        background-color: #5e9188;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+      }
 
-.card__button {
-  padding: 8px 16px;
-  background-color: #5e9188;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 4px;
-}
+      .card__price {
+        color: #000000;
+      }
 
-.card__price {
-  color: #000000;
-}
+      .card__priceBefore {
+        color: #cecece;
+        text-decoration: line-through;
+      }
 
-.card__priceBefore {
-  color: #CECECE;
-  text-decoration: line-through;
-}
+      .card__cuadroPrecio {
+        display: flex;
+        flex-direction: column-reverse;
+        margin-bottom: 9px;
+      }
 
-.card__cuadroPrecio {
-  display: flex;
-  flex-direction: column-reverse;
-  margin-bottom: 9px;
-}
+      .tituloHome {
+        color: #2a4d7d; /* Azul profundo */
+        font-family: "Georgia", serif;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-align: center;
+      }
 
-.tituloHome {
-  color: #2a4d7d; /* Azul profundo */
-  font-family: 'Georgia', serif;
-  font-size: 2.5em;
-  margin-bottom: 10px;
-  text-align: center;
-}
+      .descripcionHome {
+        color: #444;
+        font-family: "Arial", sans-serif;
+        font-size: 1.2em;
+        line-height: 1.5;
+        margin-top: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        padding: 0 150px 0 150px;
+        text-align: justify;
+        margin-top: 50px;
+      }
 
-.descripcionHome {
-  color: #444;
-  font-family: 'Arial', sans-serif;
-  font-size: 1.2em;
-  line-height: 1.5;
-  margin-top: 5px;
-  margin-bottom: 20px;
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  padding: 0 150px 0 150px;
-  text-align: justify;
-  margin-top: 50px;
-}
+      .subtituloHome {
+        color: #2a4d7d;
+        font-weight: bold;
+        font-size: 1.5em;
+        margin-top: 30px;
+        margin-bottom: 10px;
+        margin-left: 25px;
+      }
 
-.subtituloHome {
-  color: #2a4d7d;
-  font-weight: bold;
-  font-size: 1.5em;
-  margin-top: 30px;
-  margin-bottom: 10px;
-  margin-left: 25px;
-}
+      /* Estilos generales para el footer */
+      footer {
+        background-color: #333;
+        color: #fff;
+        margin-top: 40px;
+        padding: 20px 0 0 0;
+      }
 
-/* Estilos generales para el footer */
-footer {
-  background-color: #333;
-  color: #fff;
-  margin-top: 40px;
-  padding: 20px 0 0 0;
-}
+      .footer-content {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
 
-.footer-content {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  max-width: 1200px;
-  margin: 0 auto;
-}
+      .footer-section {
+        flex: 1;
+        padding: 20px;
+        min-width: 250px;
+      }
 
-.footer-section {
-  flex: 1;
-  padding: 20px;
-  min-width: 250px;
-}
+      .footer-section h2 {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
 
-.footer-section h2 {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
+      .footer-section p,
+      .footer-section ul,
+      .footer-section form {
+        font-size: 14px;
+        line-height: 1.6;
+      }
 
-.footer-section p,
-.footer-section ul,
-.footer-section form {
-  font-size: 14px;
-  line-height: 1.6;
-}
+      .footer-section ul {
+        list-style-type: none;
+      }
 
-.footer-section ul {
-  list-style-type: none;
-}
+      .footer-section ul li {
+        margin-bottom: 10px;
+      }
 
-.footer-section ul li {
-  margin-bottom: 10px;
-}
+      .footer-section ul li a {
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.3s;
+      }
 
-.footer-section ul li a {
-  color: #fff;
-  text-decoration: none;
-  transition: color 0.3s;
-}
+      .footer-section ul li a:hover {
+        color: #ffd700;
+      }
 
-.footer-section ul li a:hover {
-  color: #ffd700;
-}
+      /* Redes sociales */
+      .socials {
+        display: flex;
+        list-style-type: none;
+        padding: 0;
+      }
 
-/* Redes sociales */
-.socials {
-  display: flex;
-  list-style-type: none;
-  padding: 0;
-}
+      .socials li {
+        margin-right: 10px;
+      }
 
-.socials li {
-  margin-right: 10px;
-}
+      .socials li a {
+        color: #fff;
+        font-size: 18px;
+        transition: color 0.3s;
+      }
 
-.socials li a {
-  color: #fff;
-  font-size: 18px;
-  transition: color 0.3s;
-}
+      .socials li a:hover {
+        color: #ffd700;
+      }
 
-.socials li a:hover {
-  color: #ffd700;
-}
+      .footer-section.contact a {
+        color: #ffd700; /* Color del enlace */
+        text-decoration: none; /* Quitar el subrayado */
+        transition: color 0.3s; /* Transición suave al cambiar el color */
+      }
 
-.footer-section.contact a {
-  color: #ffd700; /* Color del enlace */
-  text-decoration: none; /* Quitar el subrayado */
-  transition: color 0.3s; /* Transición suave al cambiar el color */
-}
+      .footer-section.contact a:hover {
+        color: #ffc107; /* Color del enlace al pasar el mouse */
+      }
 
-.footer-section.contact a:hover {
-  color: #ffc107; /* Color del enlace al pasar el mouse */
-}
+      /* Footer inferior */
+      .footer-bottom {
+        text-align: center;
+        padding: 10px 0;
+        border-top: 1px solid #444;
+        margin-top: 20px;
+        font-size: 14px;
+      }
 
+      /* Media queries */
+      @media (max-width: 768px) {
+        .footer-content {
+          flex-direction: column;
+          align-items: center;
+        }
 
-/* Footer inferior */
-.footer-bottom {
-  text-align: center;
-  padding: 10px 0;
-  border-top: 1px solid #444;
-  margin-top: 20px;
-  font-size: 14px;
-}
+        .footer-section {
+          padding: 10px 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <!-- Part1 = Menu hamburguesa de opciones -->
+      <div class="part1" id="icon-menu">
+        <div class="bars__menu">
+          <span class="line1__bars-menu"></span>
+          <span class="line2__bars-menu"></span>
+          <span class="line3__bars-menu"></span>
+        </div>
+        <nav class="nav__links">
+          <a href="#" class="nav__link">Inicio</a>
+          <a href="#" class="nav__link">Artículos</a>
+          <a href="#" class="nav__link">Contactos</a>
+        </nav>
+      </div>
 
-/* Media queries */
-@media (max-width: 768px) {
-  .footer-content {
-    flex-direction: column;
-    align-items: center;
-  }
+      <!-- Part2 = Logo + Nombre de la empresa -->
+      <div class="part2">
+        <a href="#" id="logo" style="height: 100%"> </a>
+      </div>
 
-  .footer-section {
-    padding: 10px 20px;
-  }
-}
-	</style>
-</head>
-<body>
-	<header>
-		<!-- Part1 = Menu hamburguesa de opciones --> 
-		<div class="part1" id="icon-menu">
-			<div class="bars__menu">
-		    	<span class="line1__bars-menu"></span>
-		    	<span class="line2__bars-menu"></span>
-				<span class="line3__bars-menu"></span>
-		    </div>
-		    <nav class="nav__links">
-		    	<a href="#" class="nav__link">Inicio</a>
-		    	<a href="#" class="nav__link">Artículos</a>
-			    <a href="#" class="nav__link">Contactos</a>
-		    </nav>
-		</div>
-
-		<!-- Part2 = Logo + Nombre de la empresa -->
-		<div class="part2">
-			<a href="#" id="logo" style="height: 100%;">
-			</a>
-		</div>
-
-		<!-- Part3 = Usuario -->
-		<div class="part3">
-			<!-- 
+      <!-- Part3 = Usuario -->
+      <div class="part3">
+        <!-- 
 			<span id="iconUser">
 		    </span>
 		    <div id="login_container"></div>
 			 -->
-		</div>
-	</header>
-	<!-- Main o contenido principal -->
-	<div class="main">	
-		<div class="home">
-			<h1 class="tituloHome">Cursos asincrónicos de MasterPath para aprendizajes tecnologicos</h1>
+      </div>
+    </header>
+    <!-- Main o contenido principal -->
+    <div class="main">
+      <div class="home">
+        <h1 class="tituloHome">
+          Cursos asincrónicos de MasterPath para aprendizajes tecnologicos
+        </h1>
 
-			<h3 class="descripcionHome">Ve los detalles de los cursos y adquiere el que mas te guste o que sea afin a tu ambito laboral, o por memamente hobbie.</h3>
+        <h3 class="descripcionHome">
+          Ve los detalles de los cursos y adquiere el que mas te guste o que sea
+          afin a tu ambito laboral, o por memamente hobbie.
+        </h3>
 
-			<h3 class="subtituloHome">Cursos: </h3>
-			<div class="cards_list"></div>
-		</div>
-	</div>
-	<footer>
-		<div class="footer-content">
-    		<div class="footer-section about">
-				<h2>Sobre Nosotros</h2>
-				<p>Información sobre tu empresa o sitio web.</p>
-				<ul class="socials">
-					<li>
-						<a href="#"><i class="fab fa-facebook"></i></a>
-					</li>
-					<li>
-						<a href="#"><i class="fab fa-twitter"></i></a>
-					</li>
-					<li>
-						<a href="#"><i class="fab fa-instagram"></i></a>
-					</li>
-				</ul>
-    		</div>
-		    <div class="footer-section links">
-				<h2>Enlaces Útiles</h2>
-				<ul>
-					<li><a href="#">Inicio</a></li>
-					<li><a href="#">Nosotros</a></li>
-					<li><a href="#">Servicios</a></li>
-					<li><a href="#">Contacto</a></li>
-				</ul>
-		    </div>
-		    <div class="footer-section contact">
-				<h2>Contacto</h2>
-				<p>
-					<a href="mailto:controldigitalco@gmail.com"
-					  >controldigitalco@gmail.com</a
-					>
-				</p>
-		    </div>
-		</div>
-		<div class="footer-bottom">
-			&copy; 2024 MasterPath. Todos los derechos reservados.
-		</div>
-	</footer>
-	<script>
-function nombrePagina (data) {
-	//Elementos
-	const titulo = document.getElementById('logo');
-	const favicon = document.getElementById('favicon');
-	
-	// Limpieza del Elemento
-	titulo.innerHTML = '';
-	document.title = '';
+        <h3 class="subtituloHome">Cursos:</h3>
+        <div class="cards_list"></div>
+      </div>
+    </div>
+    <footer>
+      <div class="footer-content">
+        <div class="footer-section about">
+          <h2>Sobre Nosotros</h2>
+          <p>Información sobre tu empresa o sitio web.</p>
+          <ul class="socials">
+            <li>
+              <a href="#"><i class="fab fa-facebook"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+            </li>
+            <li>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+            </li>
+          </ul>
+        </div>
+        <div class="footer-section links">
+          <h2>Enlaces Útiles</h2>
+          <ul>
+            <li><a href="#">Inicio</a></li>
+            <li><a href="#">Nosotros</a></li>
+            <li><a href="#">Servicios</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="footer-section contact">
+          <h2>Contacto</h2>
+          <p>
+            <a href="mailto:controldigitalco@gmail.com"
+              >controldigitalco@gmail.com</a
+            >
+          </p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2024 MasterPath. Todos los derechos reservados.
+      </div>
+    </footer>
+    <script>
+      function nombrePagina(data) {
+        //Elementos
+        const titulo = document.getElementById("logo");
+        const favicon = document.getElementById("favicon");
 
-	// Crear elementos internos
-	const contenido = document.createElement('div');
-	const img = document.createElement('img');
+        // Limpieza del Elemento
+        titulo.innerHTML = "";
+        document.title = "";
 
-	// Agregar atributos
-	contenido.textContent = data.nombre;
-	img.src = data.logo;
-	img.alt = "logo de MasterPath";
-	document.title = data.nombre;
-	favicon.href = data.logo;
+        // Crear elementos internos
+        const contenido = document.createElement("div");
+        const img = document.createElement("img");
 
-	// Agregar clases y estilos
-	img.classList.add('logo-header-img');
-	contenido.classList.add('empresa_container');
-	
-	// Agregar elementos al contenedor principal
-	titulo.appendChild(img);
-	titulo.appendChild(contenido);
-}
+        // Agregar atributos
+        contenido.textContent = data.nombre;
+        img.src = data.logo;
+        img.alt = "logo de MasterPath";
+        document.title = data.nombre;
+        favicon.href = data.logo;
 
-function toggleHeaderOnScroll() {
-    let lastScrollTop = 0;
-    const header = document.querySelector("header");
+        // Agregar clases y estilos
+        img.classList.add("logo-header-img");
+        contenido.classList.add("empresa_container");
 
-    window.addEventListener("scroll", function() {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        // Agregar elementos al contenedor principal
+        titulo.appendChild(img);
+        titulo.appendChild(contenido);
+      }
 
-        if (scrollTop > lastScrollTop) {
+      function toggleHeaderOnScroll() {
+        let lastScrollTop = 0;
+        const header = document.querySelector("header");
+
+        window.addEventListener("scroll", function () {
+          let scrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
+
+          if (scrollTop > lastScrollTop) {
             // Desplazamiento hacia abajo
             header.style.transform = "translateY(-140%)"; // Oculta el header
             console.log("scrollTop: " + scrollTop);
             console.log("lastScrollTop: " + lastScrollTop);
-        } else {
+          } else {
             // Desplazamiento hacia arriba
             header.style.transform = "translateY(0)"; // Muestra el header
             console.log("scrollTop: " + scrollTop);
             console.log("lastScrollTop: " + lastScrollTop);
-        }
-        console.log("");
-        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // Previene valores negativos
-    });
-}
+          }
+          console.log("");
+          lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // Previene valores negativos
+        });
+      }
 
-function manageHeaderSpacer() {
-    const header = document.querySelector("header");
-    const spacer = document.getElementById("header-spacer");
-    const headerHeight = header.offsetHeight;
+      function manageHeaderSpacer() {
+        const header = document.querySelector("header");
+        const spacer = document.getElementById("header-spacer");
+        const headerHeight = header.offsetHeight;
 
-    function updateSpacerHeight() {
-        // Detecta si el header está en la cima o en el 90% superior de la ventana
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        function updateSpacerHeight() {
+          // Detecta si el header está en la cima o en el 90% superior de la ventana
+          const scrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
 
-        if (scrollTop <= headerHeight * 0.5) {
+          if (scrollTop <= headerHeight * 0.5) {
             // Header está en la cima, aplica la altura del espaciador
             spacer.style.height = `calc(${headerHeight}px + 10px)`;
-        } else {
+          } else {
             // El header ya no está en la cima, reduce la altura del espaciador
             spacer.style.height = "0";
+          }
         }
-    }
 
-    // Escucha el evento de desplazamiento para ajustar el espaciador sin interferir con el header
-    window.addEventListener("scroll", updateSpacerHeight);
-    // Llama a la función una vez para inicializar el estado correcto al cargar la página
-    updateSpacerHeight();
-}
+        // Escucha el evento de desplazamiento para ajustar el espaciador sin interferir con el header
+        window.addEventListener("scroll", updateSpacerHeight);
+        // Llama a la función una vez para inicializar el estado correcto al cargar la página
+        updateSpacerHeight();
+      }
 
-function setupNavbarMenuAnimation() {
-  // Obtener elementos del DOM
-  var iconMenu = document.getElementById("icon-menu");
-  var barsMenu = document.querySelector(".bars__menu");
-  var navbar = document.querySelector(".nav__links");
-  var line1__bars = document.querySelector(".line1__bars-menu");
-  var line2__bars = document.querySelector(".line2__bars-menu");
-  var line3__bars = document.querySelector(".line3__bars-menu");
-  var body = document.querySelector("body");
+      function setupNavbarMenuAnimation() {
+        // Obtener elementos del DOM
+        var iconMenu = document.getElementById("icon-menu");
+        var barsMenu = document.querySelector(".bars__menu");
+        var navbar = document.querySelector(".nav__links");
+        var line1__bars = document.querySelector(".line1__bars-menu");
+        var line2__bars = document.querySelector(".line2__bars-menu");
+        var line3__bars = document.querySelector(".line3__bars-menu");
+        var body = document.querySelector("body");
 
-  // Verificar la existencia de los elementos necesarios
-  if (
-    iconMenu &&
-    barsMenu &&
-    navbar &&
-    line1__bars &&
-    line2__bars &&
-    line3__bars &&
-    body
-  ) {
-    // Función para animar las barras del menú
-    function animateBars() {
-      line1__bars.classList.toggle("activeline1__bars-menu");
-      line2__bars.classList.toggle("activeline2__bars-menu");
-      line3__bars.classList.toggle("activeline3__bars-menu");
-      navbar.classList.toggle("nav__links--open");
-      body.classList.toggle("no-scroll");
-    }
+        // Verificar la existencia de los elementos necesarios
+        if (
+          iconMenu &&
+          barsMenu &&
+          navbar &&
+          line1__bars &&
+          line2__bars &&
+          line3__bars &&
+          body
+        ) {
+          // Función para animar las barras del menú
+          function animateBars() {
+            line1__bars.classList.toggle("activeline1__bars-menu");
+            line2__bars.classList.toggle("activeline2__bars-menu");
+            line3__bars.classList.toggle("activeline3__bars-menu");
+            navbar.classList.toggle("nav__links--open");
+            body.classList.toggle("no-scroll");
+          }
 
-    // Función para cerrar el menú si se hace clic fuera
-    function closeMenuOnClickOutside(event) {
-      if (
-        !iconMenu.contains(event.target) &&
-        !barsMenu.contains(event.target) &&
-        !navbar.contains(event.target)
-      ) {
-        if (navbar.classList.contains("nav__links--open")) {
-          line1__bars.classList.remove("activeline1__bars-menu");
-          line2__bars.classList.remove("activeline2__bars-menu");
-          line3__bars.classList.remove("activeline3__bars-menu");
-          navbar.classList.remove("nav__links--open");
-          body.classList.remove("no-scroll");
+          // Función para cerrar el menú si se hace clic fuera
+          function closeMenuOnClickOutside(event) {
+            if (
+              !iconMenu.contains(event.target) &&
+              !barsMenu.contains(event.target) &&
+              !navbar.contains(event.target)
+            ) {
+              if (navbar.classList.contains("nav__links--open")) {
+                line1__bars.classList.remove("activeline1__bars-menu");
+                line2__bars.classList.remove("activeline2__bars-menu");
+                line3__bars.classList.remove("activeline3__bars-menu");
+                navbar.classList.remove("nav__links--open");
+                body.classList.remove("no-scroll");
+              }
+            }
+          }
+
+          // Escuchar el evento click en el icono del menú y en el botón hamburguesa
+          iconMenu.addEventListener("click", animateBars);
+
+          // Escuchar eventos de clic en el documento para cerrar el menú si se hace clic fuera
+          document.addEventListener("click", closeMenuOnClickOutside);
+        } else {
+          console.error(
+            "Elemento con ID 'icon-menu' o clase 'bars__menu' no encontrado."
+          );
         }
       }
-    }
 
-    // Escuchar el evento click en el icono del menú y en el botón hamburguesa
-    iconMenu.addEventListener("click", animateBars);
+      function mostrarCards(data) {
+        //Elementos
+        const listCards = document.querySelector(".cards_list");
+        const limiteCaracteres = 220;
 
-    // Escuchar eventos de clic en el documento para cerrar el menú si se hace clic fuera
-    document.addEventListener("click", closeMenuOnClickOutside);
-  } else {
-    console.error(
-      "Elemento con ID 'icon-menu' o clase 'bars__menu' no encontrado."
-    );
-  }
-}
+        //Limpieza
+        listCards.innerHTML = "";
 
-function mostrarCards(data) {
-	//Elementos
-	const listCards = document.querySelector('.cards_list');
-	const limiteCaracteres = 220;
+        for (let id in data) {
+          if (id === "default") continue;
+          console.log(`Mostrando ${id}:`, data[id]);
+          //Elementos internos
+          let tarjetaCurso = document.createElement("div");
+          let img = document.createElement("img");
+          let tarjetaContenido = document.createElement("div");
+          let tituloCurso = document.createElement("div");
+          let descripcionCurso = document.createElement("div");
+          let bottom = document.createElement("div");
+          let botonCurso = document.createElement("button");
+          let precio = document.createElement("div");
+          let precioAnterior = document.createElement("div");
+          let cuadroPrecio = document.createElement("div");
+          let band = false;
 
-	//Limpieza
-	listCards.innerHTML = '';
+          //Clases
+          tarjetaCurso.classList.add("card");
+          img.classList.add("card__image");
+          tarjetaContenido.classList.add("card__content");
+          tituloCurso.classList.add("card__title");
+          descripcionCurso.classList.add("card__description");
+          botonCurso.classList.add("card__button");
+          precio.classList.add("card__price");
+          bottom.classList.add("card__bottom");
+          precioAnterior.classList.add("card__priceBefore");
+          cuadroPrecio.classList.add("card__cuadroPrecio");
 
-	for (let id in data) {
-		if (id === "default") continue;
-		console.log(`Mostrando ${id}:`, data[id]);
-		//Elementos internos
-		let tarjetaCurso = document.createElement('div');
-		let img = document.createElement('img');
-		let tarjetaContenido = document.createElement('div');
-		let tituloCurso = document.createElement('div');
-		let descripcionCurso = document.createElement('div');
-		let bottom = document.createElement('div');
-		let botonCurso = document.createElement('button');
-		let precio = document.createElement('div');
-		let precioAnterior = document.createElement('div');
-		let cuadroPrecio = document.createElement('div');
-		let band = false;
-		
-		//Clases
-		tarjetaCurso.classList.add('card');
-		img.classList.add('card__image');
-		tarjetaContenido.classList.add('card__content');
-		tituloCurso.classList.add('card__title');
-		descripcionCurso.classList.add('card__description');
-		botonCurso.classList.add('card__button');
-		precio.classList.add('card__price');
-		bottom.classList.add('card__bottom')
-		precioAnterior.classList.add('card__priceBefore');
-		cuadroPrecio.classList.add('card__cuadroPrecio');
-	
-		//Propiedades
-		if (data[id].imagen) {
-			img.src = data[id].imagen;
-		} else {
-			img.src = data['default'].imagen;
-		}
-		tituloCurso.innerHTML = data[id].titulo;
-		if (data[id].descripcion.length > limiteCaracteres) {
-			data[id].descripcion = data[id].descripcion.slice(0, limiteCaracteres) + '...';
-			descripcionCurso.innerHTML = data[id].descripcion;
-		}
-		botonCurso.innerHTML = 'Leer más';
-		//botonCurso.aria-label = 'Leer más sobre este curso';
-		switch (data[id].precioActual) {
-			case '':
-				precio.innerHTML = data['default'].precioNada;
-				break;
-			case 'default':
-				precio.innerHTML = data['default'].precioGratis;
-				break;
-			default:
-				let num = parseInt(data[id].precioActual);
-				let num2 = parseInt(data[id].precioAnterior);
-				precio.innerHTML = '$' + num.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-				if (num < num2) {
-					precioAnterior.innerHTML = '$' + num2.toLocaleString("es-Ar", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-					band = true;
-				}
-		}
+          //Propiedades
+          if (data[id].imagen) {
+            img.src = data[id].imagen;
+          } else {
+            img.src = data["default"].imagen;
+          }
+          tituloCurso.innerHTML = data[id].titulo;
+          if (data[id].descripcion.length > limiteCaracteres) {
+            data[id].descripcion =
+              data[id].descripcion.slice(0, limiteCaracteres) + "...";
+            descripcionCurso.innerHTML = data[id].descripcion;
+          }
+          botonCurso.innerHTML = "Leer más";
+          //botonCurso.aria-label = 'Leer más sobre este curso';
+          switch (data[id].precioActual) {
+            case "":
+              precio.innerHTML = data["default"].precioNada;
+              break;
+            case "default":
+              precio.innerHTML = data["default"].precioGratis;
+              break;
+            default:
+              let num = parseInt(data[id].precioActual);
+              let num2 = parseInt(data[id].precioAnterior);
+              precio.innerHTML =
+                "$" +
+                num.toLocaleString("es-AR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                });
+              if (num < num2) {
+                precioAnterior.innerHTML =
+                  "$" +
+                  num2.toLocaleString("es-Ar", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  });
+                band = true;
+              }
+          }
 
-		//Principal
-		listCards.appendChild(tarjetaCurso);
+          //Principal
+          listCards.appendChild(tarjetaCurso);
 
-		tarjetaCurso.appendChild(img);
-		tarjetaCurso.appendChild(tarjetaContenido);
-		
-		tarjetaContenido.appendChild(tituloCurso);
-		tarjetaContenido.appendChild(descripcionCurso);
-		tarjetaContenido.appendChild(bottom);
-		
-		bottom.appendChild(botonCurso);
-		bottom.appendChild(cuadroPrecio);
-		
-		if (band) {	
-			cuadroPrecio.appendChild(precioAnterior);
-		}
-		cuadroPrecio.appendChild(precio);
-	}
-}
+          tarjetaCurso.appendChild(img);
+          tarjetaCurso.appendChild(tarjetaContenido);
 
-function metaDatos() {
-	const home = document.querySelector('.home');
-	fetch('https://masterpath-22-default-rtdb.firebaseio.com/.json')
-		.then(response => response.json())
-		.then(data => {
-			nombrePagina(data.pagina);
-			if (home) {
-				mostrarCards(data.cursos);
-			}
-		})
-		.catch(error => errorDatos(error));
-	}
+          tarjetaContenido.appendChild(tituloCurso);
+          tarjetaContenido.appendChild(descripcionCurso);
+          tarjetaContenido.appendChild(bottom);
 
-function errorDatos(error) {
-	console.error('Error al cargar los datos:', error);
-	alert('Error al cargar los datos: ', error);
-}
+          bottom.appendChild(botonCurso);
+          bottom.appendChild(cuadroPrecio);
 
-metaDatos();
-setupNavbarMenuAnimation();
-setInterval(metaDatos, 5000);
-	</script>
-</body>
+          if (band) {
+            cuadroPrecio.appendChild(precioAnterior);
+          }
+          cuadroPrecio.appendChild(precio);
+        }
+      }
+
+      function metaDatos() {
+        const home = document.querySelector(".home");
+        fetch("https://masterpath-22-default-rtdb.firebaseio.com/.json")
+          .then((response) => response.json())
+          .then((data) => {
+            nombrePagina(data.pagina);
+            if (home) {
+              mostrarCards(data.cursos);
+            }
+          })
+          .catch((error) => errorDatos(error));
+      }
+
+      function errorDatos(error) {
+        console.error("Error al cargar los datos:", error);
+        alert("Error al cargar los datos: ", error);
+      }
+
+      metaDatos();
+      setupNavbarMenuAnimation();
+      setInterval(metaDatos, 5000);
+    </script>
+  </body>
 </html>

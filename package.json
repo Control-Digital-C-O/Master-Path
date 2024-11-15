@@ -2,7 +2,7 @@
   "name": "master-path",
   "version": "1.0.0",
   "description": "Página de ejemplo para la práctica de aplicaciones web con Python y Flask.",
-  "main": "index.js",
+  "main": "dev/js/main.js",
   "scripts": {
     "start:all": "parcel dev/js/main.js dev/css/style.css --dist-dir static",
     "start": "concurrently \"npm run start:all\" \"python3 index.py\"",
