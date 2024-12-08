@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  signOut,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -22,7 +23,7 @@ export function iniciarSesionCorreo(auth, email, password) {
 
       // Almacenar la información en sessionStorage
       sessionStorage.setItem("user", JSON.stringify(user));
-      window.location.href = "/home";
+      window.location.href = "/";
     })
     .catch((error) => {
       console.error("Error al iniciar sesión:", error);
@@ -61,6 +62,10 @@ export function menuUsuario(storedUser) {
     opcion1.innerHTML = "Perfil";
     opcion2.innerHTML = "Cerrar Sesion";
 
+    boton1.id = "btnAbrirModal";
+    boton1.classList.add("btn");
+    boton2.addEventListener("click", cerrarSesion);
+
     menu.appendChild(lista1);
     lista1.appendChild(boton1);
     boton1.appendChild(opcion1);
@@ -71,51 +76,130 @@ export function menuUsuario(storedUser) {
     opcion1.innerHTML = "Iniciar Sesion";
     opcion2.innerHTML = "";
 
+    if (window.location.pathname === "/") {
+      boton1.addEventListener("click", (event) => {
+        window.location.href = "/login";
+      });
+    }
+
     menu.appendChild(lista1);
     lista1.appendChild(boton1);
     boton1.appendChild(opcion1);
   }
 }
 
-export async function datosUsuario(db, storedUser) {
+/**
+ * Busca usuarios en Firestore según criterios específicos.
+ *
+ * @param {object} db - Instancia de Firestore.
+ * @param {string} collectionName - Nombre de la colección donde buscar.
+ * @param {string} field - Campo por el cual buscar (por ejemplo, "email", "username").
+ * @param {string|number} value - Valor del campo a buscar.
+ * @param {boolean} singleResult - Si es `true`, devuelve el primer resultado encontrado. Si es `false`, devuelve todos los resultados.
+ * @returns {Promise<object|array|null>} Datos del usuario encontrado (objeto único o array). Devuelve `null` si no se encuentra nada.
+ */
+export async function buscarUsuarios(
+  db,
+  collectionName,
+  field,
+  value,
+  singleResult = true
+) {
   try {
-    // Verifica si los parámetros son válidos
+    // Validaciones de los parámetros
     if (!db) throw new Error("La instancia de Firestore no está inicializada.");
-    if (!storedUser || !storedUser.email)
-      throw new Error("El usuario almacenado no es válido.");
+    if (!collectionName)
+      throw new Error("El nombre de la colección no puede estar vacío.");
+    if (!field) throw new Error("El campo de búsqueda no puede estar vacío.");
+    if (value === undefined || value === null)
+      throw new Error("El valor a buscar no puede ser nulo o indefinido.");
 
-    // Consulta Firestore para buscar el usuario por email
-    const usuariosRef = collection(db, "usuarios");
-    const userQuery = query(
-      usuariosRef,
-      where("email", "==", storedUser.email)
-    );
+    // Construcción de la consulta
+    const usuariosRef = collection(db, collectionName);
+    const userQuery = query(usuariosRef, where(field, "==", value));
     const querySnapshot = await getDocs(userQuery);
 
+    // Procesar resultados
     if (!querySnapshot.empty) {
-      querySnapshot.forEach((doc) => {
-        const userData = doc.data();
-        console.log("Datos del usuario:", userData);
-
-        // Asegúrate de que el DOM esté listo antes de modificarlo
-        const nombreElem = document.getElementById("nombreUsuario");
-        const emailElem = document.getElementById("emailUsuario");
-
-        if (nombreElem && emailElem) {
-          nombreElem.textContent = userData.nombre || "Nombre no disponible";
-          emailElem.textContent = userData.email;
-        } else {
-          console.warn(
-            "Elementos del DOM no encontrados para mostrar los datos del usuario."
-          );
-        }
-      });
+      if (singleResult) {
+        // Devuelve el primer documento encontrado
+        const firstDoc = querySnapshot.docs[0];
+        const userData = firstDoc.data();
+        console.log("Primer usuario encontrado:", userData);
+        return userData;
+      } else {
+        // Devuelve todos los documentos encontrados
+        const allUsers = querySnapshot.docs.map((doc) => doc.data());
+        console.log("Todos los usuarios encontrados:", allUsers);
+        return allUsers;
+      }
     } else {
-      console.error(
-        "No se encontró ningún usuario con el email proporcionado."
+      console.warn(
+        "No se encontraron usuarios con los criterios especificados."
       );
+      return null;
     }
   } catch (error) {
-    console.error("Error al obtener los datos del usuario:", error.message);
+    console.error("Error al buscar usuarios:", error.message);
+    return null;
   }
 }
+
+export function detallesPerfil(db, storedUser) {
+  // Referencias al modal y botones
+  const modal = document.getElementById("modalPerfil");
+  const btnAbrirModal = document.getElementById("btnAbrirModal");
+  const cerrarModal = document.getElementById("cerrarModal");
+
+  // Abrir el modal
+  btnAbrirModal.addEventListener("click", async () => {
+    const datos = await buscarUsuarios(
+      db,
+      "usuarios",
+      "email",
+      storedUser.email,
+      true
+    );
+
+    if (datos) {
+      // Muestra los datos en el modal
+      document.getElementById("nombreUsuarioModal").textContent =
+        datos.nombre || "Nombre no disponible";
+      document.getElementById("emailUsuarioModal").textContent =
+        datos.email || "Email no disponible";
+    } else {
+      console.log("error al escribir los datos");
+      console.log(datos);
+    }
+
+    modal.style.display = "block"; // Muestra el modal
+  });
+
+  // Cerrar el modal
+  cerrarModal.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  // Cierra el modal al hacer clic fuera de él
+  window.addEventListener("click", (event) => {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  });
+}
+
+export function cerrarSesion() {
+  const auth = getAuth();
+
+  signOut(auth)
+    .then(() => {
+      alert("Sesión cerrada correctamente.");
+      sessionStorage.clear();
+      window.location.href = "/";
+    })
+    .catch((error) => {
+      console.error("Error al cerrar sesión:", error.message);
+    });
+}
+
+// Agrega el evento al botón

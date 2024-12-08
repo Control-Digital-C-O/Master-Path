@@ -12,6 +12,7 @@ import {
   iniciarSesionGoogle,
   menuUsuario,
   datosUsuario,
+  detallesPerfil,
 } from "./user.js";
 // DataBase
 import {
@@ -47,23 +48,27 @@ const firestore = getFirestore(app); // Firestore
 const auth = getAuth(app); // Authentication
 
 function loginjs() {
-  const loginForm = document.querySelector(".loginForm");
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    iniciarSesionCorreo(auth, email, password);
-  });
-  document.getElementById("googleLoginButton").addEventListener("click", () => {
-    iniciarSesionGoogle(auth);
-  });
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      iniciarSesionCorreo(auth, email, password);
+    });
+    document
+      .getElementById("googleLoginButton")
+      .addEventListener("click", () => {
+        iniciarSesionGoogle(auth);
+      });
+  }
 }
 
 function metaDatos(database) {
   const header = document.querySelector(".header");
   const home = document.querySelector(".home");
 
-  if (home && header) {
+  if (header) {
     escucharFirestoreConLimite(
       firestore,
       "MasterPath/pagina",
@@ -71,7 +76,9 @@ function metaDatos(database) {
       false,
       2500
     );
-    escucharRealtimeConLimite(database, "/cursos", mostrarCards, true);
+    if (home) {
+      escucharRealtimeConLimite(database, "/cursos", mostrarCards, true);
+    }
   }
 }
 
@@ -140,24 +147,23 @@ function loader() {
 function main() {
   const storedUser = JSON.parse(sessionStorage.getItem("user"));
 
+  menuUsuario(storedUser);
   // Verificar si el usuario está en la página /login
-  if (window.location.pathname === "/login") {
-    loginjs();
-    if (storedUser) {
-      // Redirigir al usuario a /home si ya tiene una sesión activa
-      window.location.href = "/";
-    }
-  }
   if (storedUser) {
-    datosUsuario(firestore, storedUser);
+    detallesPerfil(firestore, storedUser);
   }
 
-  menuUsuario(storedUser);
   metaDatos(database);
   verificarSesion();
   setupNavbarMenuAnimation();
   cerrarModal();
   loader();
+  if (window.location.pathname === "/login") {
+    loginjs();
+    if (storedUser) {
+      window.location.href = "/";
+    }
+  }
 }
 
 main();

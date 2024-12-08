@@ -69,19 +69,19 @@
           <nav class="popup-window">
             <legend>Menu de usuario</legend>
             <ul class="menu-usuario">
-              <li>
-                <button>
-                  <span class="textUserMenu"></span>
-                </button>
-              </li>
-              <li>
-                <button>
-                  <span class="textUserMenu">Sign Up</span>
-                </button>
-              </li>
             </ul>
           </nav>
-        </label>      
+        </label> 
+        <!-- Modal -->
+        <div id="modalPerfil" class="modal">
+          <div class="modal-content">
+            <span id="cerrarModal" class="close">&times;</span>
+            <h2>Perfil del Usuario</h2>
+            <p><strong>Nombre:</strong> <span id="nombreUsuarioModal">Cargando...</span></p>
+            <p><strong>Email:</strong> <span id="emailUsuarioModal">Cargando...</span></p>
+            <!-- Agrega más campos si es necesario -->
+          </div>
+        </div>    
       </div>
     </div>
     </header>
