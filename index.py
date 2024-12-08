@@ -1,12 +1,11 @@
 # Frameworks para el uso de Apps webs python
-from flask import Flask, render_template, request
-import requests
+from flask import Flask, render_template, request, redirect, url_for, flash
 
 # Proyecto en Flask
 app = Flask(__name__)  # Varible de ruta
 
 
-@app.errorhandler(404)
+# @app.errorhandler(404)
 @app.route('/')  # Ruta principal
 def home():
     user_ip = request.remote_addr
@@ -16,6 +15,17 @@ def home():
 @app.route('/about')
 def about():
     return render_template("about.html")
+
+
+@app.route('/crud')
+def crud():
+    user_ip = request.remote_addr
+    return render_template("crud.html", user_ip=user_ip)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    return render_template("login.html")
 
 
 # Validacion de la ruta, para rotornar home por defecto

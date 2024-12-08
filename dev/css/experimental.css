@@ -1,0 +1,30 @@
+/* animations.css */
+.burger-animation {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  background: var(--burger-bg, #00bf63);
+  width: var(--burger-diameter, 3.125em);
+  height: var(--burger-diameter, 3.125em);
+  border-radius: var(--burger-btn-border-radius, 50%);
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: var(--burger-transition, all 0.1s ease-in-out);
+  outline: var(--burger-enable-outline-width, 0.125em) solid transparent;
+  outline-offset: 0;
+}
+
+.burger-animation:hover {
+  transform: scale(var(--burger-hover-scale, 1.1));
+}
+
+.burger-animation:active {
+  transform: scale(var(--burger-active-scale, 0.95));
+}
+
+.burger-animation:focus:not(:hover) {
+  outline-color: var(--burger-enable-outline-color, #00bf63);
+  outline-offset: var(--burger-enable-outline-offset, 0.125em);
+}
