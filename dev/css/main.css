@@ -5,7 +5,7 @@
 }
 
 .card {
-  display: flex; 
+  display: flex;
   flex-direction: column;
   text-align: center;
   border-radius: 16px;
@@ -63,7 +63,7 @@
 }
 
 .card__priceBefore {
-  color: #CECECE;
+  color: #cecece;
   text-decoration: line-through;
 }
 
@@ -75,7 +75,7 @@
 
 .tituloHome {
   color: #2a4d7d; /* Azul profundo */
-  font-family: 'Georgia', serif;
+  font-family: "Georgia", serif;
   font-size: 2.5em;
   margin-bottom: 10px;
   text-align: center;
@@ -83,7 +83,7 @@
 
 .descripcionHome {
   color: #444;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   font-size: 1.2em;
   line-height: 1.5;
   margin-top: 5px;
@@ -91,7 +91,6 @@
   display: flex;
   width: 100%;
   justify-content: center;
-  padding: 0 150px 0 150px;
   text-align: justify;
   margin-top: 50px;
 }
@@ -106,32 +105,236 @@
 }
 
 /* Modal */
-.modal {
-  display: none; /* Oculto por defecto */
+#modal {
+  display: none; /* Oculta el modal por defecto */
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5); /* Fondo translúcido */
+  backdrop-filter: blur(5px); /* Efecto blur */
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
+/* Contenedor del contenido del modal */
 .modal__content {
-  background: white;
-  padding: 20px;
+  background-color: #fff;
   border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  max-height: 80%;
   text-align: center;
+  position: relative;
+}
+
+/* Título y cabecera */
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal__header h2 {
+  font-size: 1.8rem;
+  margin: 0;
+  color: #333;
 }
 
 .modal__close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #999;
   cursor: pointer;
-  color: white;
+}
+
+.modal__close:hover {
+  color: #333;
+}
+
+/* Imagen */
+.modal__body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 300px;
+  margin: 10px auto;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* Descripción */
+.modal__body p {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.5;
+  margin: 10px 0;
+}
+
+.modal__body p strong {
+  font-weight: bold;
+  color: #007bff;
+}
+
+/* Evitar scroll del body cuando el modal está abierto */
+.no-scroll {
+  overflow: hidden;
+}
+
+/* Boton plus */
+
+.plusButton {
+  /* Config start */
+  --plus_sideLength: 2.5rem;
+  --plus_topRightTriangleSideLength: 0.9rem;
+  /* Config end */
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid white;
+  width: var(--plus_sideLength);
+  height: var(--plus_sideLength);
+  background-color: #000000;
+  overflow: hidden;
+  right: 25px;
+}
+
+.plusButton::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-width: 0 var(--plus_topRightTriangleSideLength)
+    var(--plus_topRightTriangleSideLength) 0;
+  border-style: solid;
+  border-color: transparent var(--color_primary) transparent transparent;
+  transition-timing-function: ease-in-out;
+  transition-duration: 0.2s;
+}
+
+.plusButton:hover {
+  cursor: pointer;
+}
+
+.plusButton:hover::before {
+  --plus_topRightTriangleSideLength: calc(var(--plus_sideLength) * 2);
+}
+
+.plusButton:focus-visible::before {
+  --plus_topRightTriangleSideLength: calc(var(--plus_sideLength) * 2);
+}
+
+.plusButton > .plusIcon {
+  fill: white;
+  width: calc(var(--plus_sideLength) * 0.7);
+  height: calc(var(--plus_sideLength) * 0.7);
+  z-index: 1;
+  transition-timing-function: ease-in-out;
+  transition-duration: 0.2s;
+}
+
+.plusButton:hover > .plusIcon {
+  fill: black;
+  transform: rotate(180deg);
+}
+
+.plusButton:focus-visible > .plusIcon {
+  fill: black;
+  transform: rotate(180deg);
+}
+
+/* Contenedor principal del modal */
+#modalPerfil {
+  display: none; /* Ocultarlo por defecto */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Fondo oscuro translúcido */
+  backdrop-filter: blur(5px); /* Efecto blur */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Contenido del modal */
+.modal__content {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+/* Animación de entrada */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Botón de cerrar */
+.modal__close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: color 0.3s ease;
+}
+
+.modal__close:hover {
+  color: #000;
+}
+
+/* Títulos y texto */
+.modal__title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.modal__text {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #666;
+}
+
+/* Botones */
+.modal__button {
+  background: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.modal__button:hover {
+  background: #0056b3;
 }

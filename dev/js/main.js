@@ -13,11 +13,15 @@ import {
   menuUsuario,
   datosUsuario,
   detallesPerfil,
+  registrarUsuario,
+  buscarUsuariosNoAsync,
 } from "./user.js";
 // DataBase
 import {
-  escucharRealtimeConLimite,
-  escucharFirestoreConLimite,
+  obtenerDatosConCache,
+  escucharActualizaciones,
+  obtenerDatosFirestoreConCache,
+  escucharActualizacionesFirestore,
   subirDatosRealtime,
   actualizarDatosRealtime,
   eliminarDatosRealtime,
@@ -49,37 +53,122 @@ const auth = getAuth(app); // Authentication
 
 function loginjs() {
   const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
+  const signupForm = document.getElementById("signupForm");
+  if (loginForm && signupForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      iniciarSesionCorreo(auth, email, password);
+      const email = document.getElementById("email-log").value;
+      const password = document.getElementById("password-log").value;
+      iniciarSesionCorreo(auth, email, password, firestore);
     });
     document
       .getElementById("googleLoginButton")
       .addEventListener("click", () => {
-        iniciarSesionGoogle(auth);
+        iniciarSesionGoogle(auth, firestore);
       });
+    signupForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email-sign").value;
+      const password = document.getElementById("password-sign").value;
+      registrarUsuario(auth, name, email, password, firestore);
+    });
   }
 }
 
-function metaDatos(database) {
+async function metaDatos(database) {
   const header = document.querySelector(".header");
   const home = document.querySelector(".home");
+  let detenerEscucha = null;
+  let band = false;
 
   if (header) {
-    escucharFirestoreConLimite(
+    // Obtener datos iniciales del documento `/pagina` con caché
+    try {
+      const datosPagina = await obtenerDatosFirestoreConCache(
+        firestore,
+        "MasterPath/pagina",
+        false
+      );
+      if (datosPagina) {
+        // console.log("Datos de la página obtenidos:", datosPagina);
+        // Aquí puedes actualizar el DOM con los datos
+        nombrePagina(datosPagina);
+      }
+    } catch (error) {
+      console.error("Error al cargar los datos de la página:", error);
+    }
+
+    // Escuchar actualizaciones en tiempo real para el documento `/pagina`
+    detenerEscucha = escucharActualizacionesFirestore(
       firestore,
       "MasterPath/pagina",
-      nombrePagina,
-      false,
-      2500
+      (datos) => {
+        // console.log(
+        //   "Actualizaciones en tiempo real del documento página:",
+        //   datos
+        // );
+        // Actualizar el DOM con los nuevos datos
+        nombrePagina(datos);
+      },
+      false
     );
+
     if (home) {
-      escucharRealtimeConLimite(database, "/cursos", mostrarCards, true);
+      // Obtener datos iniciales de `/cursos` con caché
+      try {
+        const datosCursos = await obtenerDatosConCache(
+          database,
+          "/cursos",
+          true
+        );
+        const datosImagenes = await obtenerDatosFirestoreConCache(
+          firestore,
+          "cursos",
+          true
+        );
+        // Vincular las imágenes al curso correspondiente
+        for (const id in datosCursos) {
+          if (datosCursos.hasOwnProperty(id)) {
+            const curso = datosCursos[id];
+            const imagenCurso = datosImagenes.find((img) => img.id === id);
+            curso.imagen = imagenCurso ? imagenCurso.imagen : null; // Agregar la imagen al curso
+          }
+        }
+        // console.log("datos:", datosCursosImagen);
+        console.log("datos:", datosCursos);
+        mostrarCards(datosCursos);
+        band = true;
+      } catch (error) {
+        console.error("Error al cargar los datos de cursos:", error);
+      }
+
+      if (band) {
+        // Escuchar actualizaciones en tiempo real para `/cursos`
+        detenerEscucha = escucharActualizaciones(
+          database,
+          "/cursos",
+          (nuevosDatos) => {
+            console.log(
+              "Datos actualizados en tiempo real de cursos:",
+              nuevosDatos
+            );
+            mostrarCards(nuevosDatos);
+          },
+          true,
+          300000 // 5 minutos
+        );
+      }
     }
   }
+
+  // Asegurarse de detener el listener cuando no sea necesario
+  return () => {
+    if (detenerEscucha) {
+      detenerEscucha();
+      console.log("Listener detenido.");
+    }
+  };
 }
 
 // Verificar si hay un usuario autenticado
@@ -90,6 +179,7 @@ function verificarSesion() {
     // El usuario está autenticado, muestra su nombre o información
     const usuario = JSON.parse(user);
     console.log("Usuario autenticado:", usuario.email);
+    console.log(usuario);
     // document.getElementById("bienvenida").innerHTML =
     //   "Bienvenido, " + usuario.email;
   } else {
@@ -144,9 +234,29 @@ function loader() {
   });
 }
 
+function gestionarCambioRuta() {
+  if (window.location.pathname !== "/") {
+    console.log("Saliendo de la ruta '/', deteniendo escucha...");
+    if (detenerEscuchaRealtime) {
+      detenerEscuchaRealtime(); // Detener la escucha
+      detenerEscuchaRealtime = null; // Limpiar la referencia
+    }
+  }
+}
+
+function redirectToCrud() {
+  const plus = document.querySelector(".plusIcon");
+  plus.addEventListener("click", (event) => {
+    window.location.href = "/crud";
+  });
+}
+
 function main() {
   const storedUser = JSON.parse(sessionStorage.getItem("user"));
+  console.log("datos: ", storedUser);
 
+  let detenerEscuchaRealtime;
+  let detenerEscuchaFirestore;
   menuUsuario(storedUser);
   // Verificar si el usuario está en la página /login
   if (storedUser) {
@@ -163,6 +273,22 @@ function main() {
     if (storedUser) {
       window.location.href = "/";
     }
+  }
+
+  // Escucha cambios en el historial de navegación
+  window.addEventListener("popstate", gestionarCambioRuta);
+
+  // Opcional: Para detectar enlaces o navegaciones manuales
+  window.addEventListener("hashchange", gestionarCambioRuta);
+  redirectToCrud();
+
+  if (window.location.pathname === "/crud") {
+    // Inicializar TinyMCE en el textarea
+    tinymce.init({
+      selector: "#contenidoCurso",
+      plugins: "lists link image",
+      toolbar: "undo redo | bold italic | bullist numlist | link image",
+    });
   }
 }
 

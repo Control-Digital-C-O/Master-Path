@@ -1,5 +1,20 @@
-{% block content %}
+{% extends "layout.html" %} {% block content %}
 
 <h2>Tu ip es: {{ user_ip }}</h2>
 
+<div class="container">
+  <h2>Crear/Editar Curso</h2>
+  <form id="formCurso">
+    <input
+      type="text"
+      id="nombreCurso"
+      placeholder="Nombre del Curso"
+      required />
+    <textarea id="contenidoCurso" placeholder="Contenido del Curso"></textarea>
+    <button type="submit" id="botonCrearCurso">Crear Curso</button>
+  </form>
+</div>
+<br /><br />
+<h1>FUERA DE FUNCIONAMIENTO</h1>
+<p>Proximo a implementar en futura actualización.</p>
 {% endblock %}

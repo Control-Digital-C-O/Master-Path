@@ -41,10 +41,6 @@ header {
   transform: rotate(-45deg)translate(-4px, 2px);
 }
 
-.no-scroll {
-  overflow: hidden;
-}
-
 .nav__links {
   clip-path: circle(0% at 0 0);
   background-color: var(--color_primary);
@@ -298,7 +294,6 @@ footer {
   width: 100%;
   margin-top: 50px;
   margin-bottom: 20px;
-  padding: 0 150px;
   font-family: Arial, sans-serif;
   font-size: 1.2em;
   line-height: 1.5;
@@ -314,8 +309,136 @@ footer {
   font-weight: bold;
 }
 
-.modal {
-  background: #000c;
+#modal {
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  background: #00000080;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.modal__content {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80%;
+  padding: 20px;
+  position: relative;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px #00000040;
+}
+
+.modal__header {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  display: flex;
+}
+
+.modal__header h2 {
+  color: #333;
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.modal__close {
+  color: #999;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modal__body img {
+  object-fit: cover;
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+  max-height: 300px;
+  margin: 10px auto;
+  display: block;
+}
+
+.modal__body p {
+  color: #555;
+  margin: 10px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.modal__body p strong {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.plusButton {
+  --plus_sideLength: 2.5rem;
+  --plus_topRightTriangleSideLength: .9rem;
+  width: var(--plus_sideLength);
+  height: var(--plus_sideLength);
+  background-color: #000;
+  border: 1px solid #fff;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: absolute;
+  right: 25px;
+  overflow: hidden;
+}
+
+.plusButton:before {
+  content: "";
+  border-width: 0 var(--plus_topRightTriangleSideLength) var(--plus_topRightTriangleSideLength) 0;
+  border-style: solid;
+  border-color: transparent var(--color_primary) transparent transparent;
+  width: 0;
+  height: 0;
+  transition-duration: .2s;
+  transition-timing-function: ease-in-out;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.plusButton:hover {
+  cursor: pointer;
+}
+
+.plusButton:hover:before, .plusButton:focus-visible:before {
+  --plus_topRightTriangleSideLength: calc(var(--plus_sideLength) * 2);
+}
+
+.plusButton > .plusIcon {
+  fill: #fff;
+  width: calc(var(--plus_sideLength) * .7);
+  height: calc(var(--plus_sideLength) * .7);
+  z-index: 1;
+  transition-duration: .2s;
+  transition-timing-function: ease-in-out;
+}
+
+.plusButton:hover > .plusIcon, .plusButton:focus-visible > .plusIcon {
+  fill: #000;
+  transform: rotate(180deg);
+}
+
+#modalPerfil {
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  background: #00000080;
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -329,19 +452,67 @@ footer {
 .modal__content {
   text-align: center;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
   padding: 20px;
+  animation: .3s ease-in-out slideIn;
+  box-shadow: 0 4px 10px #0000004d;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal__close {
+  color: #666;
   cursor: pointer;
-  color: #fff;
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
+  transition: color .3s;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 15px;
+}
+
+.modal__close:hover {
+  color: #000;
+}
+
+.modal__title {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.modal__text {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.modal__button {
+  color: #fff;
+  cursor: pointer;
+  background: #007bff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  transition: background .3s;
+}
+
+.modal__button:hover {
+  background: #0056b3;
 }
 
 .popup {

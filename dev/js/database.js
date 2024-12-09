@@ -12,149 +12,246 @@ import {
   doc,
   collection,
   setDoc,
+  getDoc,
+  getDocs,
   updateDoc,
   deleteDoc,
   onSnapshot,
 } from "firebase/firestore";
 
 /**
- * Escucha cambios en cualquier ruta de la base de datos con un tiempo límite en Firebase Realtime Database.
+ * Obtiene datos de Firebase utilizando caché para una carga más rápida.
+ * Si no hay datos en el caché, los descarga y los almacena.
+ * @param {object} database - Instancia de la base de datos Firebase.
+ * @param {string} ruta - Ruta específica en la base de datos que se desea consultar.
+ * @param {boolean} esLista - Indica si los datos son una lista (array) o un objeto con múltiples propiedades.
+ * @returns {Promise<object>} - Retorna los datos obtenidos (desde el caché o Firebase).
+ */
+export async function obtenerDatosConCache(database, ruta, esLista = false) {
+  const cacheKey = `cache_${ruta}`; // Clave para el caché
+  const cachedData = localStorage.getItem(cacheKey);
+
+  // Si hay datos en el caché, devolverlos inmediatamente
+  if (cachedData) {
+    try {
+      const parsedData = JSON.parse(cachedData);
+      console.log(`Datos obtenidos del caché para la ruta: ${ruta}`);
+      return parsedData;
+    } catch (error) {
+      console.error("Error al analizar los datos del caché:", error);
+    }
+  }
+
+  // Si no hay caché, descarga los datos desde Firebase
+  try {
+    const rutaRef = ref(database, ruta);
+    const snapshot = await get(rutaRef);
+
+    if (snapshot.exists()) {
+      const datos = snapshot.val();
+
+      // Guarda los datos en el caché
+      localStorage.setItem(cacheKey, JSON.stringify(datos));
+
+      console.log(
+        `Datos descargados y almacenados en el caché para la ruta: ${ruta}`
+      );
+      return datos;
+    } else {
+      console.warn(`No se encontraron datos en la ruta: ${ruta}`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error al obtener datos desde Firebase:", error);
+    throw error;
+  }
+}
+
+/**
+ * Escucha cambios en tiempo real en una ruta de Firebase y actualiza el caché.
  * @param {object} database - Instancia de la base de datos Firebase.
  * @param {string} ruta - Ruta específica en la base de datos que se desea escuchar.
  * @param {function} callback - Función de callback para manejar los cambios.
- * @param {number} tiempoLimite - Tiempo límite en milisegundos (por ejemplo, 10 minutos = 600000).
  * @param {boolean} esLista - Indica si los datos son una lista (array) o un objeto con múltiples propiedades.
+ * @param {number} tiempoLimite - Tiempo límite en milisegundos para mantener la escucha activa.
+ * @returns {function} - Retorna una función para detener la escucha manualmente.
  */
-export function escucharRealtimeConLimite(
+export function escucharActualizaciones(
   database,
   ruta,
   callback,
   esLista = false,
-  tiempoLimite = 3500 // 3.5 segundos por defecto
+  tiempoLimite = 600000 // 10 minutos por defecto
 ) {
   const rutaRef = ref(database, ruta);
 
-  // Escuchar los cambios en la ruta
+  // Configura el listener
   const listener = onValue(rutaRef, (snapshot) => {
     if (snapshot.exists()) {
-      const datos = snapshot.val();
+      const nuevosDatos = snapshot.val();
+      const cacheActual = localStorage.getItem(`cache_${ruta}`);
+      const datosEnCache = cacheActual ? JSON.parse(cacheActual) : null;
 
-      if (esLista) {
-        if (Array.isArray(datos)) {
-          // console.log("El dato es un array");
-          callback(datos); // Pasa el array completo
-        } else if (typeof datos === "object") {
-          // console.log("El dato es un objeto", datos);
-          callback(datos); // Pasa el objeto completo
-        }
+      // Compara los datos antes de actualizarlos
+      if (JSON.stringify(nuevosDatos) !== JSON.stringify(datosEnCache)) {
+        localStorage.setItem(`cache_${ruta}`, JSON.stringify(nuevosDatos));
+        console.log("Cache actualizado:", nuevosDatos);
+
+        // Llama al callback solo si hay cambios
+        callback(esLista ? Object.values(nuevosDatos) : nuevosDatos);
       } else {
-        console.log("Callback directo");
-        callback(ruta, datos); // Para un valor simple
+        console.log("Realtime: Los datos no han cambiado, no update cache.");
       }
     } else {
       console.warn(`No se encontraron datos en la ruta: ${ruta}`);
     }
   });
 
-  // Finalizar la escucha después del tiempo límite
-  setTimeout(() => {
+  // Finaliza la escucha después del tiempo límite
+  const timeout = setTimeout(() => {
     off(rutaRef);
-    // console.log("Escucha de datos cerrada después del tiempo límite.");
-    console.log("..");
+    console.log("Escucha de datos cerrada después del tiempo límite.");
   }, tiempoLimite);
 
-  // Retornar el listener para cancelarlo manualmente si es necesario
-  return listener;
+  // Retorna una función para detener el listener manualmente
+  return () => {
+    off(rutaRef);
+    clearTimeout(timeout);
+    console.log("Escucha de datos detenida manualmente.");
+  };
 }
 
 /**
- * Escucha cambios en un documento o colección con un tiempo límite en Firebase Firestore.
- * @param {object} database - Instancia de la base de datos Firestore.
+ * Obtiene datos de Firestore con caché local.
+ * @param {object} database - Instancia de Firestore.
+ * @param {string} ruta - Ruta específica en Firestore (puede ser un documento o colección).
+ * @param {boolean} esLista - Indica si los datos son una colección o un documento único.
+ * @returns {Promise<any>} - Los datos obtenidos (ya sea del caché o Firestore).
+ */
+export async function obtenerDatosFirestoreConCache(
+  database,
+  ruta,
+  esLista = false
+) {
+  const cacheKey = `cache_firestore_${ruta}`;
+  const cacheData = localStorage.getItem(cacheKey);
+
+  if (cacheData) {
+    // Si hay caché, devolverlo inmediatamente
+    // console.log("Datos obtenidos del caché:", JSON.parse(cacheData));
+    return JSON.parse(cacheData);
+  }
+
+  // Si no hay caché, descargar los datos desde Firestore
+  let datos = null;
+  const segmentos = ruta.split("/").filter(Boolean);
+
+  try {
+    if (esLista) {
+      if (segmentos.length % 2 !== 0) {
+        // Si la ruta es de una colección (debe tener un número impar de segmentos)
+        const snapshot = await getDocs(collection(database, ruta));
+        datos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      } else {
+        throw new Error("Ruta inválida para una colección.");
+      }
+    } else {
+      if (segmentos.length % 2 === 0) {
+        // Si la ruta es de un documento (debe tener un número par de segmentos)
+        const snapshot = await getDoc(doc(database, ruta));
+        datos = snapshot.exists() ? snapshot.data() : null;
+      } else {
+        throw new Error("Ruta inválida para un documento.");
+      }
+    }
+
+    // Almacenar los datos en caché
+    if (datos) {
+      localStorage.setItem(cacheKey, JSON.stringify(datos));
+      console.log("Datos descargados y almacenados en caché:", datos);
+    }
+  } catch (error) {
+    console.error(
+      `Error al obtener datos de Firestore en la ruta ${ruta}:`,
+      error
+    );
+  }
+
+  return datos;
+}
+
+/**
+ * Escucha actualizaciones en Firestore y sincroniza el caché si hay cambios.
+ * @param {object} database - Instancia de Firestore.
  * @param {string} ruta - Ruta específica en Firestore (puede ser un documento o colección).
  * @param {function} callback - Función de callback para manejar los cambios.
  * @param {boolean} esLista - Indica si los datos son una colección o un documento único.
- * @param {number} tiempoLimite - Tiempo límite en milisegundos (por ejemplo, 10 minutos = 600000).
+ * @returns {function} - Función para detener la escucha.
  */
-export function escucharFirestoreConLimite(
+export function escucharActualizacionesFirestore(
   database,
   ruta,
   callback,
-  esLista = false,
-  tiempoLimite = 4000 // 10 minutos por defecto
+  esLista = false
 ) {
+  const cacheKey = `cache_firestore_${ruta}`;
   let rutaRef;
 
-  // Verificar si la ruta corresponde a un documento o una colección
   const segmentos = ruta.split("/").filter(Boolean);
 
   if (esLista) {
-    // Si es una lista (colección)
     if (segmentos.length % 2 !== 0) {
-      // Si tiene un número impar de segmentos, es una colección
       rutaRef = collection(database, ruta);
     } else {
-      throw new Error(
-        `La ruta "${ruta}" es inválida para una colección. Debe tener un número impar de segmentos.`
-      );
+      throw new Error("Ruta inválida para una colección.");
     }
   } else {
-    // Si es un documento único
     if (segmentos.length % 2 === 0) {
-      // Si tiene un número par de segmentos, es un documento
       rutaRef = doc(database, ruta);
     } else {
-      throw new Error(
-        `La ruta "${ruta}" es inválida para un documento. Debe tener un número par de segmentos.`
-      );
+      throw new Error("Ruta inválida para un documento.");
     }
   }
 
-  // Escuchar los cambios en el documento o colección
+  // Configurar el listener
   const unsubscribe = onSnapshot(
     rutaRef,
     (snapshot) => {
-      try {
-        if (esLista) {
-          // Si es una colección, recorrer los documentos
-          const datos = [];
-          if (!snapshot.empty) {
-            snapshot.forEach((doc) => {
-              if (doc.id === "default") return; // Ignorar entradas con clave "default"
-              datos.push({ id: doc.id, ...doc.data() });
-            });
-          } else {
-            console.log(`La colección en la ruta: ${ruta} está vacía.`);
-          }
-          callback(ruta, datos);
-        } else {
-          // Si es un documento único
-          if (snapshot.exists()) {
-            callback(ruta, snapshot.data());
-          } else {
-            console.log(`No se encontró el documento en la ruta: ${ruta}`);
-          }
-        }
-      } catch (error) {
-        console.error(
-          `Error al procesar el snapshot de la ruta ${ruta}:`,
-          error
-        );
+      let nuevosDatos = null;
+
+      if (esLista) {
+        nuevosDatos = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+      } else {
+        nuevosDatos = snapshot.exists() ? snapshot.data() : null;
+      }
+
+      // Leer los datos actuales del caché
+      const cacheActual = localStorage.getItem(cacheKey);
+      const datosEnCache = cacheActual ? JSON.parse(cacheActual) : null;
+
+      // Compara los datos antes de actualizarlos
+      if (JSON.stringify(nuevosDatos) !== JSON.stringify(datosEnCache)) {
+        localStorage.setItem(cacheKey, JSON.stringify(nuevosDatos));
+        console.log("Caché actualizado con datos en tiempo real:", nuevosDatos);
+
+        // Llama al callback solo si hay cambios
+        callback(nuevosDatos);
+      } else {
+        console.log("Firestore: Los datos no han cambiado, no update cache.");
       }
     },
     (error) => {
-      console.error(`Error al escuchar cambios en la ruta ${ruta}:`, error);
+      console.error(
+        `Error al escuchar cambios en Firestore para la ruta ${ruta}:`,
+        error
+      );
     }
   );
 
-  // Finalizar la escucha después del tiempo límite
-  setTimeout(() => {
-    unsubscribe(); // Detener la escucha de Firestore
-    // console.log("Escucha de datos cerrada después del tiempo límite.");
-    console.log("..");
-  }, tiempoLimite);
-
-  // Retornar la función para cancelar la suscripción manualmente si se requiere
-  return unsubscribe;
+  return unsubscribe; // Retornar la función para cancelar la suscripción
 }
 
 // Update de los datos (Crud)
@@ -220,20 +317,19 @@ export function eliminarDatosRealtime(database, ruta) {
  * @param {string} ruta - Ruta donde se subirá el documento (ej. "coleccion/ID").
  * @param {object} datos - Datos a subir o reemplazar.
  */
-export function subirDatosFirestore(database, ruta, datos) {
+export async function subirDatosFirestore(database, ruta, datos) {
   const rutaRef = doc(database, ruta);
 
-  // Subir o reemplazar los datos del documento
-  setDoc(rutaRef, datos)
-    .then(() => {
-      console.log(`Datos subidos exitosamente a Firestore en la ruta: ${ruta}`);
-    })
-    .catch((error) => {
-      console.error(
-        `Error al subir los datos a Firestore en la ruta ${ruta}:`,
-        error
-      );
-    });
+  try {
+    // Esperar que se complete la operación de subir datos
+    await setDoc(rutaRef, datos);
+    console.log(`Datos subidos exitosamente a Firestore en la ruta: ${ruta}`);
+  } catch (error) {
+    console.error(
+      `Error al subir los datos a Firestore en la ruta ${ruta}:`,
+      error
+    );
+  }
 }
 
 /**

@@ -58,7 +58,7 @@ export function setupNavbarMenuAnimation() {
   }
 }
 
-export function nombrePagina(ruta, data) {
+export function nombrePagina(data) {
   //Elementos
   // console.log("la ruta es:", ruta, "los datos son:", data);
   const titulo = document.getElementById("logo");

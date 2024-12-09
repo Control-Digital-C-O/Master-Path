@@ -73,15 +73,16 @@
           </nav>
         </label> 
         <!-- Modal -->
-        <div id="modalPerfil" class="modal">
-          <div class="modal-content">
-            <span id="cerrarModal" class="close">&times;</span>
-            <h2>Perfil del Usuario</h2>
-            <p><strong>Nombre:</strong> <span id="nombreUsuarioModal">Cargando...</span></p>
-            <p><strong>Email:</strong> <span id="emailUsuarioModal">Cargando...</span></p>
-            <!-- Agrega más campos si es necesario -->
+        <div id="modalPerfil">
+          <div class="modal__content">
+            <button id="cerrarModal" class="modal__close">&times;</button>
+            <h2 class="modal__title" id="nombreUsuarioModal">Nombre no disponible</h2>
+            <p class="modal__text" id="emailUsuarioModal">Email no disponible</p>
+            <p class="modal__text" id="rolUsuarioModal">Rol no disponible</p>
+            <p class="modal__text" id="nombreDeUsuarioModal">Usuario no disponible</p>
+            <button class="modal__button" id="btnCerrar">Cerrar</button>
           </div>
-        </div>    
+        </div>           
       </div>
     </div>
     </header>
@@ -90,6 +91,9 @@
     <div class="main">{% block content %} {% endblock%}</div>
 
     {% include "footer.html" %}
+
+    <!-- TinyMCE CDN -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>

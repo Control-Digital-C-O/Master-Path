@@ -627,25 +627,83 @@ const firestore = (0, _firestore.getFirestore)(app); // Firestore
 const auth = (0, _auth.getAuth)(app); // Authentication
 function loginjs() {
     const loginForm = document.getElementById("loginForm");
-    if (loginForm) {
+    const signupForm = document.getElementById("signupForm");
+    if (loginForm && signupForm) {
         loginForm.addEventListener("submit", (e)=>{
             e.preventDefault();
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-            (0, _userJs.iniciarSesionCorreo)(auth, email, password);
+            const email = document.getElementById("email-log").value;
+            const password = document.getElementById("password-log").value;
+            (0, _userJs.iniciarSesionCorreo)(auth, email, password, firestore);
         });
         document.getElementById("googleLoginButton").addEventListener("click", ()=>{
-            (0, _userJs.iniciarSesionGoogle)(auth);
+            (0, _userJs.iniciarSesionGoogle)(auth, firestore);
+        });
+        signupForm.addEventListener("submit", (e)=>{
+            e.preventDefault();
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email-sign").value;
+            const password = document.getElementById("password-sign").value;
+            (0, _userJs.registrarUsuario)(auth, name, email, password, firestore);
         });
     }
 }
-function metaDatos(database) {
+async function metaDatos(database) {
     const header = document.querySelector(".header");
     const home = document.querySelector(".home");
+    let detenerEscucha = null;
+    let band = false;
     if (header) {
-        (0, _databaseJs.escucharFirestoreConLimite)(firestore, "MasterPath/pagina", (0, _headerJs.nombrePagina), false, 2500);
-        if (home) (0, _databaseJs.escucharRealtimeConLimite)(database, "/cursos", (0, _cardsJs.mostrarCards), true);
+        // Obtener datos iniciales del documento `/pagina` con caché
+        try {
+            const datosPagina = await (0, _databaseJs.obtenerDatosFirestoreConCache)(firestore, "MasterPath/pagina", false);
+            if (datosPagina) // console.log("Datos de la página obtenidos:", datosPagina);
+            // Aquí puedes actualizar el DOM con los datos
+            (0, _headerJs.nombrePagina)(datosPagina);
+        } catch (error) {
+            console.error("Error al cargar los datos de la p\xe1gina:", error);
+        }
+        // Escuchar actualizaciones en tiempo real para el documento `/pagina`
+        detenerEscucha = (0, _databaseJs.escucharActualizacionesFirestore)(firestore, "MasterPath/pagina", (datos)=>{
+            // console.log(
+            //   "Actualizaciones en tiempo real del documento página:",
+            //   datos
+            // );
+            // Actualizar el DOM con los nuevos datos
+            (0, _headerJs.nombrePagina)(datos);
+        }, false);
+        if (home) {
+            // Obtener datos iniciales de `/cursos` con caché
+            try {
+                const datosCursos = await (0, _databaseJs.obtenerDatosConCache)(database, "/cursos", true);
+                const datosImagenes = await (0, _databaseJs.obtenerDatosFirestoreConCache)(firestore, "cursos", true);
+                // Vincular las imágenes al curso correspondiente
+                for(const id in datosCursos)if (datosCursos.hasOwnProperty(id)) {
+                    const curso = datosCursos[id];
+                    const imagenCurso = datosImagenes.find((img)=>img.id === id);
+                    curso.imagen = imagenCurso ? imagenCurso.imagen : null; // Agregar la imagen al curso
+                }
+                // console.log("datos:", datosCursosImagen);
+                console.log("datos:", datosCursos);
+                (0, _cardsJs.mostrarCards)(datosCursos);
+                band = true;
+            } catch (error) {
+                console.error("Error al cargar los datos de cursos:", error);
+            }
+            if (band) // Escuchar actualizaciones en tiempo real para `/cursos`
+            detenerEscucha = (0, _databaseJs.escucharActualizaciones)(database, "/cursos", (nuevosDatos)=>{
+                console.log("Datos actualizados en tiempo real de cursos:", nuevosDatos);
+                (0, _cardsJs.mostrarCards)(nuevosDatos);
+            }, true, 300000 // 5 minutos
+            );
+        }
     }
+    // Asegurarse de detener el listener cuando no sea necesario
+    return ()=>{
+        if (detenerEscucha) {
+            detenerEscucha();
+            console.log("Listener detenido.");
+        }
+    };
 }
 // Verificar si hay un usuario autenticado
 function verificarSesion() {
@@ -654,6 +712,7 @@ function verificarSesion() {
         // El usuario está autenticado, muestra su nombre o información
         const usuario = JSON.parse(user);
         console.log("Usuario autenticado:", usuario.email);
+        console.log(usuario);
     // document.getElementById("bienvenida").innerHTML =
     //   "Bienvenido, " + usuario.email;
     } else // El usuario no está autenticado, redirige al login
@@ -694,8 +753,26 @@ function loader() {
         } else console.log("No existe el loadingModal");
     });
 }
+function gestionarCambioRuta() {
+    if (window.location.pathname !== "/") {
+        console.log("Saliendo de la ruta '/', deteniendo escucha...");
+        if (detenerEscuchaRealtime) {
+            detenerEscuchaRealtime(); // Detener la escucha
+            detenerEscuchaRealtime = null; // Limpiar la referencia
+        }
+    }
+}
+function redirectToCrud() {
+    const plus = document.querySelector(".plusIcon");
+    plus.addEventListener("click", (event)=>{
+        window.location.href = "/crud";
+    });
+}
 function main() {
     const storedUser = JSON.parse(sessionStorage.getItem("user"));
+    console.log("datos: ", storedUser);
+    let detenerEscuchaRealtime1;
+    let detenerEscuchaFirestore;
     (0, _userJs.menuUsuario)(storedUser);
     // Verificar si el usuario está en la página /login
     if (storedUser) (0, _userJs.detallesPerfil)(firestore, storedUser);
@@ -708,10 +785,120 @@ function main() {
         loginjs();
         if (storedUser) window.location.href = "/";
     }
+    // Escucha cambios en el historial de navegación
+    window.addEventListener("popstate", gestionarCambioRuta);
+    // Opcional: Para detectar enlaces o navegaciones manuales
+    window.addEventListener("hashchange", gestionarCambioRuta);
+    redirectToCrud();
+    if (window.location.pathname === "/crud") // Inicializar TinyMCE en el textarea
+    tinymce.init({
+        selector: "#contenidoCurso",
+        plugins: "lists link image",
+        toolbar: "undo redo | bold italic | bullist numlist | link image"
+    });
 }
 main();
 
-},{"./cards.js":"7rR4w","firebase/app":"aM3Fo","firebase/database":"SJ4UY","firebase/firestore":"8A4BC","firebase/auth":"79vzg","./user.js":"kxDMb","./database.js":"fCeWI","./header.js":"fxKs0"}],"7rR4w":[function(require,module,exports,__globalThis) {
+},{"./header.js":"fxKs0","./cards.js":"7rR4w","firebase/app":"aM3Fo","firebase/database":"SJ4UY","firebase/firestore":"8A4BC","firebase/auth":"79vzg","./user.js":"kxDMb","./database.js":"fCeWI"}],"fxKs0":[function(require,module,exports,__globalThis) {
+// Animación del menu hamburguesa
+// Función para animar el menú de la barra de navegación
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "setupNavbarMenuAnimation", ()=>setupNavbarMenuAnimation);
+parcelHelpers.export(exports, "nombrePagina", ()=>nombrePagina);
+function setupNavbarMenuAnimation() {
+    // Obtener elementos del DOM
+    var iconMenu = document.getElementById("icon-menu");
+    var barsMenu = document.querySelector(".bars__menu");
+    var navbar = document.querySelector(".nav__links");
+    var line1__bars = document.querySelector(".line1__bars-menu");
+    var line2__bars = document.querySelector(".line2__bars-menu");
+    var line3__bars = document.querySelector(".line3__bars-menu");
+    var body = document.querySelector("body");
+    // Verificar la existencia de los elementos necesarios
+    if (iconMenu && barsMenu && navbar && line1__bars && line2__bars && line3__bars && body) {
+        // Función para animar las barras del menú
+        function animateBars() {
+            line1__bars.classList.toggle("activeline1__bars-menu");
+            line2__bars.classList.toggle("activeline2__bars-menu");
+            line3__bars.classList.toggle("activeline3__bars-menu");
+            navbar.classList.toggle("nav__links--open");
+            body.classList.toggle("no-scroll");
+        }
+        // Función para cerrar el menú si se hace clic fuera
+        function closeMenuOnClickOutside(event) {
+            if (!iconMenu.contains(event.target) && !barsMenu.contains(event.target) && !navbar.contains(event.target)) {
+                if (navbar.classList.contains("nav__links--open")) {
+                    line1__bars.classList.remove("activeline1__bars-menu");
+                    line2__bars.classList.remove("activeline2__bars-menu");
+                    line3__bars.classList.remove("activeline3__bars-menu");
+                    navbar.classList.remove("nav__links--open");
+                    body.classList.remove("no-scroll");
+                }
+            }
+        }
+        // Escuchar el evento click en el icono del menú y en el botón hamburguesa
+        iconMenu.addEventListener("click", animateBars);
+        // Escuchar eventos de clic en el documento para cerrar el menú si se hace clic fuera
+        document.addEventListener("click", closeMenuOnClickOutside);
+    } else console.log("Elemento con ID 'icon-menu' o clase 'bars__menu' no encontrado.");
+}
+function nombrePagina(data) {
+    //Elementos
+    // console.log("la ruta es:", ruta, "los datos son:", data);
+    const titulo = document.getElementById("logo");
+    const favicon = document.getElementById("favicon");
+    // Limpieza del Elemento
+    titulo.innerHTML = "";
+    document.title = "";
+    // Crear elementos internos
+    const contenido = document.createElement("div");
+    const img = document.createElement("img");
+    // Agregar atributos
+    contenido.textContent = data.nombre;
+    img.src = data.logo;
+    img.alt = "logo de MasterPath";
+    document.title = data.nombre;
+    favicon.href = data.logo;
+    // Agregar clases y estilos
+    img.classList.add("logo-header-img");
+    contenido.classList.add("empresa_container");
+    // Agregar elementos al contenedor principal
+    titulo.appendChild(img);
+    titulo.appendChild(contenido);
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports,__globalThis) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, '__esModule', {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"7rR4w":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "mostrarCards", ()=>mostrarCards);
@@ -760,7 +947,7 @@ function mostrarCards(data) {
         precioAnterior.classList.add("card__priceBefore");
         cuadroPrecio.classList.add("card__cuadroPrecio");
         // Configurar propiedades de los elementos
-        // img.src = curso.imagen || data["default"]?.imagen || ""; // Imagen del curso o default
+        img.src = curso.imagen || data["default"]?.imagen || ""; // Imagen del curso o default
         tituloCurso.innerHTML = curso.titulo || "T\xedtulo no disponible";
         descripcionCurso.innerHTML = curso.descripcion && curso.descripcion.length > limiteCaracteres ? curso.descripcion.slice(0, limiteCaracteres) + "..." : curso.descripcion || "Sin descripci\xf3n";
         botonCurso.innerHTML = "Leer m\xe1s";
@@ -796,58 +983,42 @@ function mostrarCards(data) {
     }
 }
 function mostrarDetallesCurso(curso) {
-    // Seleccionar el modal
-    let body = document.querySelector("body");
+    // Seleccionar el modal y elementos relacionados
+    const body = document.querySelector("body");
     const modal = document.querySelector("#modal");
     const modalContent = modal.querySelector(".modal__content");
-    body.classList.toggle("no-scroll");
-    // Llenar el contenido del modal con los detalles del curso
+    // Agregar contenido dinámico del curso al modal
     modalContent.innerHTML = `
-  <div class="no-scroll">
-    <h2>${curso.titulo || "T\xedtulo no disponible"}</h2>
-    <img src="${curso.imagen || ""}" alt="${curso.titulo || "Curso"}" />
-    <p>${curso.descripcion || "Sin descripci\xf3n disponible"}</p>
-    <p><strong>Precio:</strong> ${curso.precioActual ? `$${parseFloat(curso.precioActual).toLocaleString("es-AR", {
+    <div class="modal__header">
+      <h2>${curso.titulo || "T\xedtulo no disponible"}</h2>
+      <button class="modal__close" aria-label="Cerrar modal">&times;</button>
+    </div>
+    <div class="modal__body">
+      <img src="${curso.imagen || ""}" alt="${curso.titulo || "Curso"}" />
+      <p>${curso.descripcion || "Sin descripci\xf3n disponible"}</p>
+      <p><strong>Precio:</strong> ${curso.precioActual ? `$${parseFloat(curso.precioActual).toLocaleString("es-AR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     })}` : "Gratis"}</p>
-  </div>
+    </div>
   `;
-    // Mostrar el modal
-    modal.style.display = "block";
+    // Mostrar el modal y deshabilitar el scroll en el cuerpo
+    modal.style.display = "flex";
+    body.classList.add("no-scroll");
+    // Cerrar el modal al hacer clic en el botón de cerrar o fuera del contenido
+    const closeModal = ()=>{
+        modal.style.display = "none";
+        body.classList.remove("no-scroll");
+    };
+    // Detectar clic en el botón de cerrar
+    modal.querySelector(".modal__close").addEventListener("click", closeModal);
+    // Detectar clic fuera del contenido
+    modal.addEventListener("click", (event)=>{
+        if (!modalContent.contains(event.target)) closeModal();
+    });
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports,__globalThis) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, '__esModule', {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === 'default' || key === '__esModule' || Object.prototype.hasOwnProperty.call(dest, key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"aM3Fo":[function(require,module,exports,__globalThis) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"aM3Fo":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _app = require("@firebase/app");
@@ -50470,6 +50641,8 @@ parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "iniciarSesionCorreo", ()=>iniciarSesionCorreo);
 // Función para iniciar sesión con Google
 parcelHelpers.export(exports, "iniciarSesionGoogle", ()=>iniciarSesionGoogle);
+// Función para manejar el formulario de registro
+parcelHelpers.export(exports, "registrarUsuario", ()=>registrarUsuario);
 parcelHelpers.export(exports, "menuUsuario", ()=>menuUsuario);
 /**
  * Busca usuarios en Firestore según criterios específicos.
@@ -50481,34 +50654,82 @@ parcelHelpers.export(exports, "menuUsuario", ()=>menuUsuario);
  * @param {boolean} singleResult - Si es `true`, devuelve el primer resultado encontrado. Si es `false`, devuelve todos los resultados.
  * @returns {Promise<object|array|null>} Datos del usuario encontrado (objeto único o array). Devuelve `null` si no se encuentra nada.
  */ parcelHelpers.export(exports, "buscarUsuarios", ()=>buscarUsuarios);
+parcelHelpers.export(exports, "buscarUsuariosNoAsync", ()=>buscarUsuariosNoAsync);
 parcelHelpers.export(exports, "detallesPerfil", ()=>detallesPerfil);
-parcelHelpers.export(exports, "cerrarSesion", ()=>cerrarSesion) // Agrega el evento al botón
-;
+parcelHelpers.export(exports, "cerrarSesion", ()=>cerrarSesion);
+parcelHelpers.export(exports, "irCrud", ()=>irCrud);
+// Leer los datos de un usuario
+parcelHelpers.export(exports, "obtenerUsuario", ()=>obtenerUsuario);
+// Actualizar los datos de un usuario
+parcelHelpers.export(exports, "actualizarUsuario", ()=>actualizarUsuario);
+// Eliminar un usuario
+parcelHelpers.export(exports, "eliminarUsuario", ()=>eliminarUsuario);
 var _auth = require("firebase/auth");
 var _firestore = require("firebase/firestore");
+var _database = require("./database");
 function iniciarSesionCorreo(auth, email, password) {
     (0, _auth.signInWithEmailAndPassword)(auth, email, password).then((userCredential)=>{
         const user = userCredential.user;
         console.log("Sesi\xf3n iniciada:", user);
-        alert("\xa1Bienvenido " + user.email + "!");
         // Almacenar la información en sessionStorage
         sessionStorage.setItem("user", JSON.stringify(user));
+        alert("\xa1Bienvenido " + user.email + "!");
         window.location.href = "/";
     }).catch((error)=>{
         console.error("Error al iniciar sesi\xf3n:", error);
         alert("Error al iniciar sesi\xf3n: " + error.message);
     });
 }
-function iniciarSesionGoogle(auth) {
+async function iniciarSesionGoogle(auth, db) {
     const provider = new (0, _auth.GoogleAuthProvider)();
-    (0, _auth.signInWithPopup)(auth, provider).then((result)=>{
+    try {
+        const result = await (0, _auth.signInWithPopup)(auth, provider);
         const user = result.user;
-        console.log("Sesi\xf3n iniciada con Google:", user);
-        alert("\xa1Bienvenido " + user.displayName + "!");
-    }).catch((error)=>{
+        // console.log("Sesión iniciada con Google:", user);
+        // Almacenar la información del usuario en sessionStorage
+        sessionStorage.setItem("user", JSON.stringify(user));
+        let user3 = JSON.parse(sessionStorage.getItem("user"));
+        // console.log("Sesión iniciada con Google2:", user3);
+        // Verificar si el usuario ya está registrado en la base de datos
+        const emailUnico = await buscarUsuarios(db, "usuarios", "email", user3.email, true);
+        if (!emailUnico) {
+            // Si el usuario no está registrado, crear una cuenta
+            await crearUsuario(db, user3);
+            console.log("Cuenta creada para el usuario:", user3.email);
+        } else console.log("El usuario ya est\xe1 registrado:", emailUnico);
+        alert("\xa1Bienvenido " + user3.displayName + "!");
+        window.location.href = "/";
+    } catch (error) {
         console.error("Error al iniciar sesi\xf3n con Google:", error);
         alert("Error al iniciar sesi\xf3n con Google: " + error.message);
-    });
+    }
+}
+async function registrarUsuario(auth, name, email, password, db) {
+    try {
+        // Validar los campos antes de intentar crear la cuenta
+        if (!email || !password || !name) {
+            alert("Por favor, complete todos los campos.");
+            return;
+        }
+        // Crear un nuevo usuario con correo y contraseña
+        const userCredential = await (0, _auth.createUserWithEmailAndPassword)(auth, email, password);
+        const user = userCredential.user;
+        user.displayName = name;
+        // Actualizar el perfil del usuario con el nombre
+        sessionStorage.setItem("user", JSON.stringify(user));
+        let user3 = JSON.parse(sessionStorage.getItem("user"));
+        await crearUsuario(db, user3);
+        console.log("Cuenta creada para el usuario:", user3.email);
+        console.log("Usuario creado con \xe9xito:", user3);
+        alert("Exito al registrarse");
+        window.location.href = "/"; // Redirigir a la página principal
+    } catch (error) {
+        console.error("Error al crear la cuenta:", error.message);
+        // Manejo de errores
+        if (error.code === "auth/email-already-in-use") alert("Este correo ya est\xe1 en uso. Por favor, use otro.");
+        else if (error.code === "auth/weak-password") alert("La contrase\xf1a debe tener al menos 6 caracteres.");
+        else alert("Error al crear la cuenta: " + error.message);
+    }
 }
 function menuUsuario(storedUser) {
     const menu = document.querySelector(".menu-usuario");
@@ -50578,31 +50799,70 @@ async function buscarUsuarios(db, collectionName, field, value, singleResult = t
         return null;
     }
 }
+function buscarUsuariosNoAsync(db, collectionName, field, value, singleResult = true) {
+    // Validaciones de los parámetros
+    if (!db) throw new Error("La instancia de Firestore no est\xe1 inicializada.");
+    if (!collectionName) throw new Error("El nombre de la colecci\xf3n no puede estar vac\xedo.");
+    if (!field) throw new Error("El campo de b\xfasqueda no puede estar vac\xedo.");
+    if (value === undefined || value === null) throw new Error("El valor a buscar no puede ser nulo o indefinido.");
+    // Construcción de la consulta
+    const usuariosRef = (0, _firestore.collection)(db, collectionName);
+    const userQuery = (0, _firestore.query)(usuariosRef, (0, _firestore.where)(field, "==", value));
+    // Aquí, en lugar de usar await, devolvemos la promesa directamente
+    return (0, _firestore.getDocs)(userQuery).then((querySnapshot)=>{
+        if (!querySnapshot.empty) {
+            if (singleResult) {
+                // Devuelve el primer documento encontrado
+                const firstDoc = querySnapshot.docs[0];
+                const userData = firstDoc.data();
+                // console.log("Primer usuario encontrado:", userData);
+                return userData;
+            } else {
+                // Devuelve todos los documentos encontrados
+                const allUsers = querySnapshot.docs.map((doc)=>doc.data());
+                console.log("Todos los usuarios encontrados:", allUsers);
+                return allUsers;
+            }
+        } else {
+            console.warn("No se encontraron usuarios con los criterios especificados.");
+            return null;
+        }
+    }).catch((error)=>{
+        console.error("Error al buscar usuarios:", error.message);
+        return null;
+    });
+}
 function detallesPerfil(db, storedUser) {
     // Referencias al modal y botones
     const modal = document.getElementById("modalPerfil");
     const btnAbrirModal = document.getElementById("btnAbrirModal");
     const cerrarModal = document.getElementById("cerrarModal");
+    const btnCerrar = document.getElementById("btnCerrar");
     // Abrir el modal
     btnAbrirModal.addEventListener("click", async ()=>{
-        const datos = await buscarUsuarios(db, "usuarios", "email", storedUser.email, true);
-        if (datos) {
-            // Muestra los datos en el modal
-            document.getElementById("nombreUsuarioModal").textContent = datos.nombre || "Nombre no disponible";
-            document.getElementById("emailUsuarioModal").textContent = datos.email || "Email no disponible";
-        } else {
-            console.log("error al escribir los datos");
-            console.log(datos);
+        try {
+            const datos = await buscarUsuarios(db, "usuarios", "email", storedUser.email, true);
+            if (datos) {
+                // Mostrar los datos en el modal
+                document.getElementById("nombreUsuarioModal").textContent = datos.nombre || "Nombre no disponible";
+                document.getElementById("emailUsuarioModal").textContent = datos.email || "Email no disponible";
+                document.getElementById("rolUsuarioModal").textContent = datos.rol || "Rol no disponible";
+                document.getElementById("nombreDeUsuarioModal").textContent = datos.usuario || "Usuario no disponible";
+            } else console.log("No se encontraron datos del usuario.");
+            modal.style.display = "flex"; // Muestra el modal
+        } catch (error) {
+            console.error("Error al obtener los datos del usuario:", error);
         }
-        modal.style.display = "block"; // Muestra el modal
     });
-    // Cerrar el modal
-    cerrarModal.addEventListener("click", ()=>{
+    // Cerrar el modal (botón cerrar y fondo)
+    const cerrarModalHandler = ()=>{
         modal.style.display = "none";
-    });
-    // Cierra el modal al hacer clic fuera de él
+    };
+    cerrarModal.addEventListener("click", cerrarModalHandler);
+    btnCerrar.addEventListener("click", cerrarModalHandler);
+    // Cerrar el modal al hacer clic fuera del contenido
     window.addEventListener("click", (event)=>{
-        if (event.target == modal) modal.style.display = "none";
+        if (event.target == modal) cerrarModalHandler();
     });
 }
 function cerrarSesion() {
@@ -50615,26 +50875,102 @@ function cerrarSesion() {
         console.error("Error al cerrar sesi\xf3n:", error.message);
     });
 }
+function irCrud() {
+    window.location.href = "/crud";
+}
+async function crearUsuario(database, usuarioData) {
+    try {
+        // Verificar si el email ya está registrado
+        const emailUnico = await buscarUsuarios(database, "usuarios", "email", usuarioData.email, true);
+        if (emailUnico) {
+            console.log("El email de usuario ya est\xe1 en uso.");
+            return;
+        }
+        const nuevoId = await (0, _firestore.runTransaction)(database, async (transaction)=>{
+            const contadorRef = (0, _firestore.doc)(database, "MasterPath/config");
+            const contadorSnap = await transaction.get(contadorRef);
+            let contadorActual = 0;
+            if (contadorSnap.exists()) contadorActual = contadorSnap.data().idContador || 0;
+            // Incrementar el contador
+            const nuevoContador = contadorActual + 1;
+            transaction.update(contadorRef, {
+                idContador: nuevoContador
+            });
+            return `U${nuevoContador}`; // Nuevo ID generado
+        });
+        // Datos predeterminados
+        const datosUsuario = {
+            email: usuarioData.email,
+            genero: usuarioData.genero || "nada",
+            nombre: usuarioData.displayName || "Usuario An\xf3nimo",
+            usuario: nuevoId + "@" + (usuarioData.displayName.replace(/\s/g, "").slice(0, 6) || "user"),
+            rol: "Estudiante"
+        };
+        // Subir datos del nuevo usuario
+        const ruta = `usuarios/${nuevoId}`;
+        await (0, _database.subirDatosFirestore)(database, ruta, datosUsuario);
+        console.log("Usuario creado exitosamente:", datosUsuario);
+    } catch (error) {
+        console.error("Error al crear el usuario:", error);
+        throw new Error("No se pudo registrar el usuario.");
+    }
+}
+async function obtenerUsuario(database, usuario) {
+    const datosUsuario = await buscarUsuarios(database, "usuarios", "usuario", usuario);
+    if (datosUsuario) console.log("Usuario encontrado:", datosUsuario);
+    else console.log("Usuario no encontrado.");
+    return datosUsuario;
+}
+async function actualizarUsuario(database, usuario, nuevosDatos) {
+    const ruta = `usuarios/${usuario}`;
+    await (0, _database.subirDatosFirestore)(database, ruta, nuevosDatos);
+    console.log("Usuario actualizado:", nuevosDatos);
+}
+async function eliminarUsuario(database, usuario) {
+    const ruta = `usuarios/${usuario}`;
+    const usuarioExistente = await buscarUsuarios(database, "usuarios", "usuario", usuario);
+    if (usuarioExistente) {
+        const rutaRef = (0, _firestore.doc)(database, ruta);
+        await deleteDoc(rutaRef);
+        console.log(`Usuario ${usuario} eliminado.`);
+    } else console.log("El usuario no existe y no se puede eliminar.");
+}
 
-},{"firebase/auth":"79vzg","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","firebase/firestore":"8A4BC"}],"fCeWI":[function(require,module,exports,__globalThis) {
+},{"firebase/auth":"79vzg","firebase/firestore":"8A4BC","./database":"fCeWI","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fCeWI":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 /**
- * Escucha cambios en cualquier ruta de la base de datos con un tiempo límite en Firebase Realtime Database.
+ * Obtiene datos de Firebase utilizando caché para una carga más rápida.
+ * Si no hay datos en el caché, los descarga y los almacena.
+ * @param {object} database - Instancia de la base de datos Firebase.
+ * @param {string} ruta - Ruta específica en la base de datos que se desea consultar.
+ * @param {boolean} esLista - Indica si los datos son una lista (array) o un objeto con múltiples propiedades.
+ * @returns {Promise<object>} - Retorna los datos obtenidos (desde el caché o Firebase).
+ */ parcelHelpers.export(exports, "obtenerDatosConCache", ()=>obtenerDatosConCache);
+/**
+ * Escucha cambios en tiempo real en una ruta de Firebase y actualiza el caché.
  * @param {object} database - Instancia de la base de datos Firebase.
  * @param {string} ruta - Ruta específica en la base de datos que se desea escuchar.
  * @param {function} callback - Función de callback para manejar los cambios.
- * @param {number} tiempoLimite - Tiempo límite en milisegundos (por ejemplo, 10 minutos = 600000).
  * @param {boolean} esLista - Indica si los datos son una lista (array) o un objeto con múltiples propiedades.
- */ parcelHelpers.export(exports, "escucharRealtimeConLimite", ()=>escucharRealtimeConLimite);
+ * @param {number} tiempoLimite - Tiempo límite en milisegundos para mantener la escucha activa.
+ * @returns {function} - Retorna una función para detener la escucha manualmente.
+ */ parcelHelpers.export(exports, "escucharActualizaciones", ()=>escucharActualizaciones);
 /**
- * Escucha cambios en un documento o colección con un tiempo límite en Firebase Firestore.
- * @param {object} database - Instancia de la base de datos Firestore.
+ * Obtiene datos de Firestore con caché local.
+ * @param {object} database - Instancia de Firestore.
+ * @param {string} ruta - Ruta específica en Firestore (puede ser un documento o colección).
+ * @param {boolean} esLista - Indica si los datos son una colección o un documento único.
+ * @returns {Promise<any>} - Los datos obtenidos (ya sea del caché o Firestore).
+ */ parcelHelpers.export(exports, "obtenerDatosFirestoreConCache", ()=>obtenerDatosFirestoreConCache);
+/**
+ * Escucha actualizaciones en Firestore y sincroniza el caché si hay cambios.
+ * @param {object} database - Instancia de Firestore.
  * @param {string} ruta - Ruta específica en Firestore (puede ser un documento o colección).
  * @param {function} callback - Función de callback para manejar los cambios.
  * @param {boolean} esLista - Indica si los datos son una colección o un documento único.
- * @param {number} tiempoLimite - Tiempo límite en milisegundos (por ejemplo, 10 minutos = 600000).
- */ parcelHelpers.export(exports, "escucharFirestoreConLimite", ()=>escucharFirestoreConLimite);
+ * @returns {function} - Función para detener la escucha.
+ */ parcelHelpers.export(exports, "escucharActualizacionesFirestore", ()=>escucharActualizacionesFirestore);
 // Update de los datos (Crud)
 /**
  * Sube o actualiza datos en Firebase Realtime Database.
@@ -50678,81 +51014,135 @@ parcelHelpers.defineInteropFlag(exports);
  */ parcelHelpers.export(exports, "agregarDocumentoAcoleccion", ()=>agregarDocumentoAcoleccion);
 var _database = require("firebase/database");
 var _firestore = require("firebase/firestore");
-function escucharRealtimeConLimite(database, ruta, callback, esLista = false, tiempoLimite = 3500 // 3.5 segundos por defecto
-) {
-    const rutaRef = (0, _database.ref)(database, ruta);
-    // Escuchar los cambios en la ruta
-    const listener = (0, _database.onValue)(rutaRef, (snapshot)=>{
+async function obtenerDatosConCache(database, ruta, esLista = false) {
+    const cacheKey = `cache_${ruta}`; // Clave para el caché
+    const cachedData = localStorage.getItem(cacheKey);
+    // Si hay datos en el caché, devolverlos inmediatamente
+    if (cachedData) try {
+        const parsedData = JSON.parse(cachedData);
+        console.log(`Datos obtenidos del cach\xe9 para la ruta: ${ruta}`);
+        return parsedData;
+    } catch (error) {
+        console.error("Error al analizar los datos del cach\xe9:", error);
+    }
+    // Si no hay caché, descarga los datos desde Firebase
+    try {
+        const rutaRef = (0, _database.ref)(database, ruta);
+        const snapshot = await get(rutaRef);
         if (snapshot.exists()) {
             const datos = snapshot.val();
-            if (esLista) {
-                if (Array.isArray(datos)) // console.log("El dato es un array");
-                callback(datos); // Pasa el array completo
-                else if (typeof datos === "object") // console.log("El dato es un objeto", datos);
-                callback(datos); // Pasa el objeto completo
-            } else {
-                console.log("Callback directo");
-                callback(ruta, datos); // Para un valor simple
-            }
+            // Guarda los datos en el caché
+            localStorage.setItem(cacheKey, JSON.stringify(datos));
+            console.log(`Datos descargados y almacenados en el cach\xe9 para la ruta: ${ruta}`);
+            return datos;
+        } else {
+            console.warn(`No se encontraron datos en la ruta: ${ruta}`);
+            return null;
+        }
+    } catch (error) {
+        console.error("Error al obtener datos desde Firebase:", error);
+        throw error;
+    }
+}
+function escucharActualizaciones(database, ruta, callback, esLista = false, tiempoLimite = 600000 // 10 minutos por defecto
+) {
+    const rutaRef = (0, _database.ref)(database, ruta);
+    // Configura el listener
+    const listener = (0, _database.onValue)(rutaRef, (snapshot)=>{
+        if (snapshot.exists()) {
+            const nuevosDatos = snapshot.val();
+            const cacheActual = localStorage.getItem(`cache_${ruta}`);
+            const datosEnCache = cacheActual ? JSON.parse(cacheActual) : null;
+            // Compara los datos antes de actualizarlos
+            if (JSON.stringify(nuevosDatos) !== JSON.stringify(datosEnCache)) {
+                localStorage.setItem(`cache_${ruta}`, JSON.stringify(nuevosDatos));
+                console.log("Cache actualizado:", nuevosDatos);
+                // Llama al callback solo si hay cambios
+                callback(esLista ? Object.values(nuevosDatos) : nuevosDatos);
+            } else console.log("Realtime: Los datos no han cambiado, no update cache.");
         } else console.warn(`No se encontraron datos en la ruta: ${ruta}`);
     });
-    // Finalizar la escucha después del tiempo límite
-    setTimeout(()=>{
+    // Finaliza la escucha después del tiempo límite
+    const timeout = setTimeout(()=>{
         (0, _database.off)(rutaRef);
-        // console.log("Escucha de datos cerrada después del tiempo límite.");
-        console.log("..");
+        console.log("Escucha de datos cerrada despu\xe9s del tiempo l\xedmite.");
     }, tiempoLimite);
-    // Retornar el listener para cancelarlo manualmente si es necesario
-    return listener;
+    // Retorna una función para detener el listener manualmente
+    return ()=>{
+        (0, _database.off)(rutaRef);
+        clearTimeout(timeout);
+        console.log("Escucha de datos detenida manualmente.");
+    };
 }
-function escucharFirestoreConLimite(database, ruta, callback, esLista = false, tiempoLimite = 4000 // 10 minutos por defecto
-) {
-    let rutaRef;
-    // Verificar si la ruta corresponde a un documento o una colección
+async function obtenerDatosFirestoreConCache(database, ruta, esLista = false) {
+    const cacheKey = `cache_firestore_${ruta}`;
+    const cacheData = localStorage.getItem(cacheKey);
+    if (cacheData) // Si hay caché, devolverlo inmediatamente
+    // console.log("Datos obtenidos del caché:", JSON.parse(cacheData));
+    return JSON.parse(cacheData);
+    // Si no hay caché, descargar los datos desde Firestore
+    let datos = null;
     const segmentos = ruta.split("/").filter(Boolean);
-    if (esLista) {
-        // Si es una lista (colección)
-        if (segmentos.length % 2 !== 0) // Si tiene un número impar de segmentos, es una colección
-        rutaRef = (0, _firestore.collection)(database, ruta);
-        else throw new Error(`La ruta "${ruta}" es inv\xe1lida para una colecci\xf3n. Debe tener un n\xfamero impar de segmentos.`);
-    } else {
-        // Si es un documento único
-        if (segmentos.length % 2 === 0) // Si tiene un número par de segmentos, es un documento
-        rutaRef = (0, _firestore.doc)(database, ruta);
-        else throw new Error(`La ruta "${ruta}" es inv\xe1lida para un documento. Debe tener un n\xfamero par de segmentos.`);
-    }
-    // Escuchar los cambios en el documento o colección
-    const unsubscribe = (0, _firestore.onSnapshot)(rutaRef, (snapshot)=>{
-        try {
-            if (esLista) {
-                // Si es una colección, recorrer los documentos
-                const datos = [];
-                if (!snapshot.empty) snapshot.forEach((doc)=>{
-                    if (doc.id === "default") return; // Ignorar entradas con clave "default"
-                    datos.push({
+    try {
+        if (esLista) {
+            if (segmentos.length % 2 !== 0) {
+                // Si la ruta es de una colección (debe tener un número impar de segmentos)
+                const snapshot = await (0, _firestore.getDocs)((0, _firestore.collection)(database, ruta));
+                datos = snapshot.docs.map((doc)=>({
                         id: doc.id,
                         ...doc.data()
-                    });
-                });
-                else console.log(`La colecci\xf3n en la ruta: ${ruta} est\xe1 vac\xeda.`);
-                callback(ruta, datos);
-            } else // Si es un documento único
-            if (snapshot.exists()) callback(ruta, snapshot.data());
-            else console.log(`No se encontr\xf3 el documento en la ruta: ${ruta}`);
-        } catch (error) {
-            console.error(`Error al procesar el snapshot de la ruta ${ruta}:`, error);
+                    }));
+            } else throw new Error("Ruta inv\xe1lida para una colecci\xf3n.");
+        } else {
+            if (segmentos.length % 2 === 0) {
+                // Si la ruta es de un documento (debe tener un número par de segmentos)
+                const snapshot = await (0, _firestore.getDoc)((0, _firestore.doc)(database, ruta));
+                datos = snapshot.exists() ? snapshot.data() : null;
+            } else throw new Error("Ruta inv\xe1lida para un documento.");
         }
+        // Almacenar los datos en caché
+        if (datos) {
+            localStorage.setItem(cacheKey, JSON.stringify(datos));
+            console.log("Datos descargados y almacenados en cach\xe9:", datos);
+        }
+    } catch (error) {
+        console.error(`Error al obtener datos de Firestore en la ruta ${ruta}:`, error);
+    }
+    return datos;
+}
+function escucharActualizacionesFirestore(database, ruta, callback, esLista = false) {
+    const cacheKey = `cache_firestore_${ruta}`;
+    let rutaRef;
+    const segmentos = ruta.split("/").filter(Boolean);
+    if (esLista) {
+        if (segmentos.length % 2 !== 0) rutaRef = (0, _firestore.collection)(database, ruta);
+        else throw new Error("Ruta inv\xe1lida para una colecci\xf3n.");
+    } else {
+        if (segmentos.length % 2 === 0) rutaRef = (0, _firestore.doc)(database, ruta);
+        else throw new Error("Ruta inv\xe1lida para un documento.");
+    }
+    // Configurar el listener
+    const unsubscribe = (0, _firestore.onSnapshot)(rutaRef, (snapshot)=>{
+        let nuevosDatos = null;
+        if (esLista) nuevosDatos = snapshot.docs.map((doc)=>({
+                id: doc.id,
+                ...doc.data()
+            }));
+        else nuevosDatos = snapshot.exists() ? snapshot.data() : null;
+        // Leer los datos actuales del caché
+        const cacheActual = localStorage.getItem(cacheKey);
+        const datosEnCache = cacheActual ? JSON.parse(cacheActual) : null;
+        // Compara los datos antes de actualizarlos
+        if (JSON.stringify(nuevosDatos) !== JSON.stringify(datosEnCache)) {
+            localStorage.setItem(cacheKey, JSON.stringify(nuevosDatos));
+            console.log("Cach\xe9 actualizado con datos en tiempo real:", nuevosDatos);
+            // Llama al callback solo si hay cambios
+            callback(nuevosDatos);
+        } else console.log("Firestore: Los datos no han cambiado, no update cache.");
     }, (error)=>{
-        console.error(`Error al escuchar cambios en la ruta ${ruta}:`, error);
+        console.error(`Error al escuchar cambios en Firestore para la ruta ${ruta}:`, error);
     });
-    // Finalizar la escucha después del tiempo límite
-    setTimeout(()=>{
-        unsubscribe(); // Detener la escucha de Firestore
-        // console.log("Escucha de datos cerrada después del tiempo límite.");
-        console.log("..");
-    }, tiempoLimite);
-    // Retornar la función para cancelar la suscripción manualmente si se requiere
-    return unsubscribe;
+    return unsubscribe; // Retornar la función para cancelar la suscripción
 }
 function subirDatosRealtime(database, ruta, datos) {
     const rutaRef = (0, _database.ref)(database, ruta);
@@ -50781,14 +51171,15 @@ function eliminarDatosRealtime(database, ruta) {
         console.error(`Error al eliminar los datos en la ruta ${ruta}:`, error);
     });
 }
-function subirDatosFirestore(database, ruta, datos) {
+async function subirDatosFirestore(database, ruta, datos) {
     const rutaRef = (0, _firestore.doc)(database, ruta);
-    // Subir o reemplazar los datos del documento
-    (0, _firestore.setDoc)(rutaRef, datos).then(()=>{
+    try {
+        // Esperar que se complete la operación de subir datos
+        await (0, _firestore.setDoc)(rutaRef, datos);
         console.log(`Datos subidos exitosamente a Firestore en la ruta: ${ruta}`);
-    }).catch((error)=>{
+    } catch (error) {
         console.error(`Error al subir los datos a Firestore en la ruta ${ruta}:`, error);
-    });
+    }
 }
 function actualizarDatosFirestore(database, ruta, datos) {
     const rutaRef = (0, _firestore.doc)(database, ruta);
@@ -50819,75 +51210,6 @@ function agregarDocumentoAcoleccion(database, coleccion, datos) {
     });
 }
 
-},{"firebase/database":"SJ4UY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","firebase/firestore":"8A4BC"}],"fxKs0":[function(require,module,exports,__globalThis) {
-// Animación del menu hamburguesa
-// Función para animar el menú de la barra de navegación
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "setupNavbarMenuAnimation", ()=>setupNavbarMenuAnimation);
-parcelHelpers.export(exports, "nombrePagina", ()=>nombrePagina);
-function setupNavbarMenuAnimation() {
-    // Obtener elementos del DOM
-    var iconMenu = document.getElementById("icon-menu");
-    var barsMenu = document.querySelector(".bars__menu");
-    var navbar = document.querySelector(".nav__links");
-    var line1__bars = document.querySelector(".line1__bars-menu");
-    var line2__bars = document.querySelector(".line2__bars-menu");
-    var line3__bars = document.querySelector(".line3__bars-menu");
-    var body = document.querySelector("body");
-    // Verificar la existencia de los elementos necesarios
-    if (iconMenu && barsMenu && navbar && line1__bars && line2__bars && line3__bars && body) {
-        // Función para animar las barras del menú
-        function animateBars() {
-            line1__bars.classList.toggle("activeline1__bars-menu");
-            line2__bars.classList.toggle("activeline2__bars-menu");
-            line3__bars.classList.toggle("activeline3__bars-menu");
-            navbar.classList.toggle("nav__links--open");
-            body.classList.toggle("no-scroll");
-        }
-        // Función para cerrar el menú si se hace clic fuera
-        function closeMenuOnClickOutside(event) {
-            if (!iconMenu.contains(event.target) && !barsMenu.contains(event.target) && !navbar.contains(event.target)) {
-                if (navbar.classList.contains("nav__links--open")) {
-                    line1__bars.classList.remove("activeline1__bars-menu");
-                    line2__bars.classList.remove("activeline2__bars-menu");
-                    line3__bars.classList.remove("activeline3__bars-menu");
-                    navbar.classList.remove("nav__links--open");
-                    body.classList.remove("no-scroll");
-                }
-            }
-        }
-        // Escuchar el evento click en el icono del menú y en el botón hamburguesa
-        iconMenu.addEventListener("click", animateBars);
-        // Escuchar eventos de clic en el documento para cerrar el menú si se hace clic fuera
-        document.addEventListener("click", closeMenuOnClickOutside);
-    } else console.log("Elemento con ID 'icon-menu' o clase 'bars__menu' no encontrado.");
-}
-function nombrePagina(ruta, data) {
-    //Elementos
-    // console.log("la ruta es:", ruta, "los datos son:", data);
-    const titulo = document.getElementById("logo");
-    const favicon = document.getElementById("favicon");
-    // Limpieza del Elemento
-    titulo.innerHTML = "";
-    document.title = "";
-    // Crear elementos internos
-    const contenido = document.createElement("div");
-    const img = document.createElement("img");
-    // Agregar atributos
-    contenido.textContent = data.nombre;
-    img.src = data.logo;
-    img.alt = "logo de MasterPath";
-    document.title = data.nombre;
-    favicon.href = data.logo;
-    // Agregar clases y estilos
-    img.classList.add("logo-header-img");
-    contenido.classList.add("empresa_container");
-    // Agregar elementos al contenedor principal
-    titulo.appendChild(img);
-    titulo.appendChild(contenido);
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gbcu9","b8qc1"], "b8qc1", "parcelRequire94c2")
+},{"firebase/database":"SJ4UY","firebase/firestore":"8A4BC","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["gbcu9","b8qc1"], "b8qc1", "parcelRequire94c2")
 
 //# sourceMappingURL=main.js.map

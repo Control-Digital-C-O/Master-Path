@@ -50,7 +50,7 @@ export function mostrarCards(data) {
     cuadroPrecio.classList.add("card__cuadroPrecio");
 
     // Configurar propiedades de los elementos
-    // img.src = curso.imagen || data["default"]?.imagen || ""; // Imagen del curso o default
+    img.src = curso.imagen || data["default"]?.imagen || ""; // Imagen del curso o default
     tituloCurso.innerHTML = curso.titulo || "Título no disponible";
 
     descripcionCurso.innerHTML =
@@ -111,28 +111,48 @@ export function mostrarCards(data) {
 }
 
 export function mostrarDetallesCurso(curso) {
-  // Seleccionar el modal
-  let body = document.querySelector("body");
+  // Seleccionar el modal y elementos relacionados
+  const body = document.querySelector("body");
   const modal = document.querySelector("#modal");
   const modalContent = modal.querySelector(".modal__content");
-  body.classList.toggle("no-scroll");
-  // Llenar el contenido del modal con los detalles del curso
+
+  // Agregar contenido dinámico del curso al modal
   modalContent.innerHTML = `
-  <div class="no-scroll">
-    <h2>${curso.titulo || "Título no disponible"}</h2>
-    <img src="${curso.imagen || ""}" alt="${curso.titulo || "Curso"}" />
-    <p>${curso.descripcion || "Sin descripción disponible"}</p>
-    <p><strong>Precio:</strong> ${
-      curso.precioActual
-        ? `$${parseFloat(curso.precioActual).toLocaleString("es-AR", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`
-        : "Gratis"
-    }</p>
-  </div>
+    <div class="modal__header">
+      <h2>${curso.titulo || "Título no disponible"}</h2>
+      <button class="modal__close" aria-label="Cerrar modal">&times;</button>
+    </div>
+    <div class="modal__body">
+      <img src="${curso.imagen || ""}" alt="${curso.titulo || "Curso"}" />
+      <p>${curso.descripcion || "Sin descripción disponible"}</p>
+      <p><strong>Precio:</strong> ${
+        curso.precioActual
+          ? `$${parseFloat(curso.precioActual).toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`
+          : "Gratis"
+      }</p>
+    </div>
   `;
 
-  // Mostrar el modal
-  modal.style.display = "block";
+  // Mostrar el modal y deshabilitar el scroll en el cuerpo
+  modal.style.display = "flex";
+  body.classList.add("no-scroll");
+
+  // Cerrar el modal al hacer clic en el botón de cerrar o fuera del contenido
+  const closeModal = () => {
+    modal.style.display = "none";
+    body.classList.remove("no-scroll");
+  };
+
+  // Detectar clic en el botón de cerrar
+  modal.querySelector(".modal__close").addEventListener("click", closeModal);
+
+  // Detectar clic fuera del contenido
+  modal.addEventListener("click", (event) => {
+    if (!modalContent.contains(event.target)) {
+      closeModal();
+    }
+  });
 }
